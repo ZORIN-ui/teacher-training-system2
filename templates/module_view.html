@@ -1,0 +1,302 @@
+{% extends "base_simple.html" %}
+
+{% block title %}{{ module.title }} - {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Breadcrumb -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('courses') }}">Courses</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('course_detail', course_id=course.id) }}">{{ course.title }}</a></li>
+                    <li class="breadcrumb-item active">{{ module.title }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Module Content -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-1">{{ module.title }}</h4>
+                            <div class="d-flex align-items-center text-muted">
+                                <span class="badge bg-secondary me-2">{{ module.lesson_type.title() }}</span>
+                                {% if module.duration_minutes %}
+                                <span class="me-2">
+                                    <i class="fas fa-clock me-1"></i>{{ module.duration_minutes }} min
+                                </span>
+                                {% endif %}
+                                <span>
+                                    <i class="fas fa-list-ol me-1"></i>Lesson {{ module.lesson_order }}
+                                </span>
+                            </div>
+                        </div>
+                        <button id="completeBtn" class="btn btn-success" onclick="markComplete()">
+                            <i class="fas fa-check me-1"></i>Mark Complete
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Module Content -->
+                    <div class="module-content">
+                        {{ module.content | safe | nl2br }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Course
+                        </a>
+                        <div>
+                            <button class="btn btn-outline-primary me-2" onclick="previousModule()" id="prevBtn">
+                                <i class="fas fa-chevron-left me-1"></i>Previous
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="nextModule()" id="nextBtn">
+                                Next<i class="fas fa-chevron-right ms-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Progress Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Your Progress
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center">
+                        <div class="progress mb-3" style="height: 10px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 0%" id="progressBar"></div>
+                        </div>
+                        <h5 id="progressText">0% Complete</h5>
+                        <p class="text-muted small">Keep going! You're doing great.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Module Info -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">Module Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 text-center">
+                        <div class="col-6">
+                            <div class="border rounded p-2">
+                                <i class="fas fa-{{ 'video' if module.lesson_type == 'video' else 'file-text' }} fa-2x text-primary mb-2"></i>
+                                <h6 class="small mb-1">Type</h6>
+                                <p class="small text-muted mb-0">{{ module.lesson_type.title() }}</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="border rounded p-2">
+                                <i class="fas fa-clock fa-2x text-success mb-2"></i>
+                                <h6 class="small mb-1">Duration</h6>
+                                <p class="small text-muted mb-0">{{ module.duration_minutes or 'N/A' }} min</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Course Info -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Course: {{ course.title }}</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">{{ course.description }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-secondary">{{ course.category }}</span>
+                        <span class="badge bg-info">{{ course.level.title() }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Timer for tracking time spent -->
+<div id="timer" style="display: none;">
+    <span id="startTime">{{ moment().format() }}</span>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let startTime = new Date();
+let moduleCompleted = false;
+
+function markComplete() {
+    if (moduleCompleted) return;
+    
+    const timeSpent = Math.floor((new Date() - startTime) / 60000); // minutes
+    
+    fetch(`/module/{{ module.id }}/complete`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            time_spent: timeSpent
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            moduleCompleted = true;
+            document.getElementById('completeBtn').innerHTML = '<i class="fas fa-check me-1"></i>Completed';
+            document.getElementById('completeBtn').classList.remove('btn-success');
+            document.getElementById('completeBtn').classList.add('btn-outline-success');
+            document.getElementById('completeBtn').disabled = true;
+            
+            // Update progress
+            updateProgress();
+            
+            // Show success message
+            showAlert('Module completed successfully!', 'success');
+        } else {
+            showAlert(data.message || 'Failed to mark module as complete', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('An error occurred while marking module as complete', 'error');
+    });
+}
+
+function updateProgress() {
+    // This would typically fetch updated progress from the server
+    // For now, we'll just show a simple animation
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    
+    // Simulate progress update
+    setTimeout(() => {
+        progressBar.style.width = '100%';
+        progressText.textContent = '100% Complete';
+    }, 500);
+}
+
+function previousModule() {
+    // Navigate to previous module (would need server-side logic)
+    showAlert('Previous module navigation would be implemented here', 'info');
+}
+
+function nextModule() {
+    // Navigate to next module (would need server-side logic)
+    showAlert('Next module navigation would be implemented here', 'info');
+}
+
+function showAlert(message, type) {
+    const alertClass = type === 'success' ? 'alert-success' : 
+                      type === 'error' ? 'alert-danger' : 'alert-info';
+    
+    const alertHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    // Insert alert at the top of the content
+    const container = document.querySelector('.container-fluid');
+    container.insertAdjacentHTML('afterbegin', alertHtml);
+    
+    // Auto-dismiss after 3 seconds
+    setTimeout(() => {
+        const alert = container.querySelector('.alert');
+        if (alert) {
+            alert.remove();
+        }
+    }, 3000);
+}
+
+// Auto-save progress periodically
+setInterval(() => {
+    if (!moduleCompleted) {
+        // Could implement auto-save of progress here
+        console.log('Auto-saving progress...');
+    }
+}, 30000); // Every 30 seconds
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.module-content {
+    line-height: 1.8;
+    font-size: 1.1rem;
+}
+
+.module-content h1, .module-content h2, .module-content h3 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+
+.module-content p {
+    margin-bottom: 1.5rem;
+}
+
+.module-content ul, .module-content ol {
+    margin-bottom: 1.5rem;
+    padding-left: 2rem;
+}
+
+.module-content li {
+    margin-bottom: 0.5rem;
+}
+
+.module-content blockquote {
+    border-left: 4px solid #007bff;
+    padding-left: 1rem;
+    margin: 1.5rem 0;
+    font-style: italic;
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.25rem;
+}
+
+.progress {
+    height: 10px;
+    border-radius: 10px;
+}
+
+.progress-bar {
+    border-radius: 10px;
+    transition: width 0.6s ease;
+}
+
+.breadcrumb {
+    background-color: transparent;
+    padding: 0;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: ">";
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+</style>
+{% endblock %}

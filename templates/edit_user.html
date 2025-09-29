@@ -1,0 +1,198 @@
+{% extends "base_simple.html" %}
+
+{% block title %}Edit User - Admin{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-edit"></i> Edit User: {{ user.full_name }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Username *</label>
+                                    <input type="text" class="form-control" id="username" name="username" 
+                                           value="{{ user.username }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email *</label>
+                                    <input type="email" class="form-control" id="email" name="email" 
+                                           value="{{ user.email }}" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="full_name" class="form-label">Full Name *</label>
+                            <input type="text" class="form-control" id="full_name" name="full_name" 
+                                   value="{{ user.full_name }}" required>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="role" class="form-label">Role *</label>
+                                    <select class="form-select" id="role" name="role" required>
+                                        <option value="teacher" {{ 'selected' if user.role == 'teacher' else '' }}>Teacher</option>
+                                        <option value="instructor" {{ 'selected' if user.role == 'instructor' else '' }}>Instructor</option>
+                                        <option value="admin" {{ 'selected' if user.role == 'admin' else '' }}>Administrator</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="department" class="form-label">Department</label>
+                                    <input type="text" class="form-control" id="department" name="department" 
+                                           value="{{ user.department or '' }}" placeholder="e.g., Mathematics, Science">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                   value="{{ user.phone or '' }}" placeholder="e.g., +1234567890">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="bio" class="form-label">Bio</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="3" 
+                                      placeholder="Brief description about the user">{{ user.bio or '' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" 
+                                       {{ 'checked' if user.is_active else '' }}>
+                                <label class="form-check-label" for="is_active">
+                                    <strong>Active User</strong>
+                                    <small class="text-muted d-block">Uncheck to deactivate this user account</small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- User Information Display -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Account Status</label>
+                                    <div>
+                                        {% if user.approval_status == 'approved' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check"></i> Approved
+                                            </span>
+                                        {% elif user.approval_status == 'pending' %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-clock"></i> Pending Approval
+                                            </span>
+                                        {% elif user.approval_status == 'rejected' %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times"></i> Rejected
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Member Since</label>
+                                    <div class="text-muted">
+                                        {{ user.created_at[:19] if user.created_at else 'Unknown' }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if user.last_login %}
+                        <div class="mb-3">
+                            <label class="form-label">Last Login</label>
+                            <div class="text-muted">
+                                {{ user.last_login[:19] }}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Users
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Update User
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Additional Actions -->
+            {% if user.id != session.user_id %}
+            <div class="card mt-4">
+                <div class="card-header bg-warning">
+                    <h6 class="mb-0 text-dark">
+                        <i class="fas fa-exclamation-triangle"></i> Dangerous Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Toggle User Status</h6>
+                            <p class="text-muted small">
+                                {{ 'Deactivate' if user.is_active else 'Activate' }} this user account.
+                            </p>
+                            <form method="POST" action="{{ url_for('toggle_user_status', user_id=user.id) }}" 
+                                  onsubmit="return confirm('Are you sure you want to {{ 'deactivate' if user.is_active else 'activate' }} this user?')">
+                                <button type="submit" class="btn btn-{{ 'warning' if user.is_active else 'success' }} btn-sm">
+                                    <i class="fas fa-{{ 'pause' if user.is_active else 'play' }}"></i>
+                                    {{ 'Deactivate' if user.is_active else 'Activate' }} User
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Delete User</h6>
+                            <p class="text-muted small">
+                                Permanently deactivate this user account and all associated data.
+                            </p>
+                            <form method="POST" action="{{ url_for('delete_user', user_id=user.id) }}" 
+                                  onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.')">
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="fas fa-trash"></i> Delete User
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.form-label {
+    font-weight: 600;
+    color: #495057;
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+
+.text-muted.small {
+    font-size: 0.875rem;
+}
+</style>
+{% endblock %}

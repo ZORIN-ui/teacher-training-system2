@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found - Teacher Training System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="text-center">
+                <!-- Error Illustration -->
+                <div class="error-illustration mb-4">
+                    <i class="fas fa-search fa-5x text-muted mb-3"></i>
+                    <h1 class="display-1 text-primary fw-bold">404</h1>
+                </div>
+                
+                <!-- Error Message -->
+                <div class="error-content">
+                    <h2 class="h4 mb-3">Oops! Page Not Found</h2>
+                    <p class="text-muted mb-4">
+                        The page you're looking for doesn't exist or has been moved. 
+                        Don't worry, it happens to the best of us!
+                    </p>
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
+                        <a href="{{ url_for('dashboard') if current_user.is_authenticated else url_for('index') }}" 
+                           class="btn btn-primary">
+                            <i class="fas fa-home me-2"></i>
+                            {% if current_user.is_authenticated %}
+                                Go to Dashboard
+                            {% else %}
+                                Go to Home
+                            {% endif %}
+                        </a>
+                        
+                        <a href="{{ url_for('courses') if current_user.is_authenticated else url_for('login') }}" 
+                           class="btn btn-outline-secondary">
+                            <i class="fas fa-{{ 'book' if current_user.is_authenticated else 'sign-in-alt' }} me-2"></i>
+                            {% if current_user.is_authenticated %}
+                                Browse Courses
+                            {% else %}
+                                Login
+                            {% endif %}
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Helpful Links -->
+                {% if current_user.is_authenticated %}
+                <div class="mt-5">
+                    <h6 class="text-muted mb-3">Quick Links</h6>
+                    <div class="row g-2">
+                        <div class="col-6 col-sm-3">
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-light btn-sm w-100">
+                                <i class="fas fa-tachometer-alt d-block mb-1"></i>
+                                <small>Dashboard</small>
+                            </a>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <a href="{{ url_for('courses') }}" class="btn btn-light btn-sm w-100">
+                                <i class="fas fa-book d-block mb-1"></i>
+                                <small>Courses</small>
+                            </a>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <a href="{{ url_for('profile') }}" class="btn btn-light btn-sm w-100">
+                                <i class="fas fa-user d-block mb-1"></i>
+                                <small>Profile</small>
+                            </a>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <button type="button" class="btn btn-light btn-sm w-100" onclick="goBack()">
+                                <i class="fas fa-arrow-left d-block mb-1"></i>
+                                <small>Go Back</small>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Search Box -->
+                <div class="mt-4">
+                    <div class="card bg-light border-0">
+                        <div class="card-body">
+                            <h6 class="card-title">Looking for something specific?</h6>
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Search courses, lessons, or topics..." id="searchInput">
+                                <button class="btn btn-outline-primary" type="button" onclick="performSearch()">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function goBack() {
+    if (window.history.length > 1) {
+        window.history.back();
+    } else {
+        window.location.href = "{{ url_for('dashboard') if current_user.is_authenticated else url_for('index') }}";
+    }
+}
+
+function performSearch() {
+    const searchTerm = document.getElementById('searchInput').value.trim();
+    if (searchTerm) {
+        {% if current_user.is_authenticated %}
+            window.location.href = "{{ url_for('courses') }}?search=" + encodeURIComponent(searchTerm);
+        {% else %}
+            showNotification('Please login to search courses', 'info');
+            setTimeout(() => {
+                window.location.href = "{{ url_for('login') }}";
+            }, 1500);
+        {% endif %}
+    }
+}
+
+// Allow search on Enter key
+document.getElementById('searchInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        performSearch();
+    }
+});
+
+// Add some animation
+$(document).ready(function() {
+    $('.error-illustration').addClass('fade-in');
+    $('.error-content').addClass('slide-in-left');
+    
+    setTimeout(function() {
+        $('.mt-5, .mt-4').addClass('fade-in');
+    }, 500);
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.error-illustration {
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+.btn-light {
+    border: 1px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.btn-light:hover {
+    background-color: #e9ecef;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.card {
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.input-group .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Responsive text sizing */
+@media (max-width: 576px) {
+    .display-1 {
+        font-size: 4rem;
+    }
+    
+    .error-illustration i {
+        font-size: 3rem !important;
+    }
+    
+    .btn-sm small {
+        font-size: 0.7rem;
+    }
+}
+
+/* Animation classes */
+.fade-in {
+    animation: fadeIn 0.8s ease-in;
+}
+
+.slide-in-left {
+    animation: slideInLeft 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(20px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+@keyframes slideInLeft {
+    from { 
+        opacity: 0; 
+        transform: translateX(-30px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateX(0); 
+    }
+}
+
+/* Custom styling for quick links */
+.btn-light i {
+    color: var(--primary-color);
+}
+
+.btn-light:hover i {
+    color: var(--primary-color);
+}
+
+/* Error illustration styling */
+.error-illustration .fa-search {
+    opacity: 0.3;
+}
+
+.display-1 {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--info-color) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,238 @@
+{% extends "base_simple.html" %}
+
+{% block title %}{{ course.title }} - Enrollments - Teacher Training System{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h2 mb-0">
+                        <i class="fas fa-users me-2 text-primary"></i>
+                        Course Enrollments
+                    </h1>
+                    <p class="text-muted mb-0">{{ course.title }}</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('course_modules', course_id=course.id) }}" class="btn btn-outline-info">
+                        <i class="fas fa-list me-1"></i>Manage Content
+                    </a>
+                    <a href="{{ url_for('admin_courses') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Courses
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Overview -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">{{ enrollments|length }}</h3>
+                    <small>Total Enrolled</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">{{ enrollments|selectattr('completed_at')|list|length }}</h3>
+                    <small>Completed</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">{{ total_lessons }}</h3>
+                    <small>Total Lessons</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">
+                        {% if enrollments %}
+                            {{ "%.1f"|format((enrollments|sum(attribute='progress_percentage') / enrollments|length)) }}%
+                        {% else %}
+                            0%
+                        {% endif %}
+                    </h3>
+                    <small>Avg Progress</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Enrolled Students
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if enrollments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Department</th>
+                                        <th>Enrolled Date</th>
+                                        <th>Progress</th>
+                                        <th>Status</th>
+                                        <th>Last Activity</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for enrollment in enrollments %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                                     style="width: 40px; height: 40px;">
+                                                    {{ enrollment.student_name[0].upper() }}
+                                                </div>
+                                                <div>
+                                                    <strong>{{ enrollment.student_name }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">{{ enrollment.student_email }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if enrollment.department %}
+                                                <span class="badge bg-light text-dark">{{ enrollment.department }}</span>
+                                            {% else %}
+                                                <span class="text-muted">Not specified</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small>{{ enrollment.enrolled_at[:10] }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress me-2" style="width: 80px; height: 8px;">
+                                                    <div class="progress-bar 
+                                                        {% if enrollment.progress_percentage == 100 %}bg-success
+                                                        {% elif enrollment.progress_percentage >= 50 %}bg-info
+                                                        {% else %}bg-warning{% endif %}" 
+                                                         role="progressbar" 
+                                                         style="width: {{ enrollment.progress_percentage }}%"></div>
+                                                </div>
+                                                <small class="text-muted">{{ "%.1f"|format(enrollment.progress_percentage) }}%</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if enrollment.completed_at %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check me-1"></i>Completed
+                                                </span>
+                                                <br>
+                                                <small class="text-muted">{{ enrollment.completed_at[:10] }}</small>
+                                            {% elif enrollment.is_active %}
+                                                <span class="badge bg-primary">
+                                                    <i class="fas fa-play me-1"></i>In Progress
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-pause me-1"></i>Inactive
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ enrollment.user_created[:10] }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-info" 
+                                                        onclick="viewStudentProgress({{ enrollment.user_id }}, '{{ enrollment.student_name }}')" 
+                                                        title="View Progress">
+                                                    <i class="fas fa-chart-line"></i>
+                                                </button>
+                                                <form method="POST" action="{{ url_for('toggle_enrollment', enrollment_id=enrollment.id) }}" 
+                                                      style="display: inline;">
+                                                    <button type="submit" 
+                                                            class="btn btn-outline-{{ 'warning' if enrollment.is_active else 'success' }}" 
+                                                            title="{{ 'Deactivate' if enrollment.is_active else 'Activate' }} Enrollment"
+                                                            onclick="return confirm('Are you sure you want to {{ 'deactivate' if enrollment.is_active else 'activate' }} this enrollment?')">
+                                                        <i class="fas fa-{{ 'pause' if enrollment.is_active else 'play' }}"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-user-graduate fa-4x text-muted mb-4"></i>
+                            <h4 class="text-muted mb-3">No Students Enrolled</h4>
+                            <p class="text-muted mb-4">This course doesn't have any enrolled students yet.</p>
+                            <a href="{{ url_for('courses') }}" class="btn btn-primary">
+                                <i class="fas fa-share me-2"></i>Share Course Link
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Student Progress Modal -->
+<div class="modal fade" id="progressModal" tabindex="-1" aria-labelledby="progressModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="progressModalLabel">Student Progress</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="progressContent">
+                <!-- Progress content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewStudentProgress(userId, studentName) {
+    document.getElementById('progressModalLabel').textContent = `Progress: ${studentName}`;
+    document.getElementById('progressContent').innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading student progress...</p>
+        </div>
+    `;
+    
+    // In a full implementation, this would load actual progress data via AJAX
+    setTimeout(() => {
+        document.getElementById('progressContent').innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Detailed progress tracking would be implemented here, showing:
+                <ul class="mt-2 mb-0">
+                    <li>Lesson completion status</li>
+                    <li>Time spent on each lesson</li>
+                    <li>Quiz scores and attempts</li>
+                    <li>Overall course progress</li>
+                </ul>
+            </div>
+        `;
+    }, 1000);
+    
+    new bootstrap.Modal(document.getElementById('progressModal')).show();
+}
+</script>
+{% endblock %}

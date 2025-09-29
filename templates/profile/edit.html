@@ -1,0 +1,467 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Profile - Teacher Training System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">Edit Profile</h2>
+                    <p class="text-muted">Update your personal information and preferences</p>
+                </div>
+                <a href="{{ url_for('profile') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Profile
+                </a>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data">
+                <div class="row">
+                    <!-- Profile Picture Section -->
+                    <div class="col-12 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-camera me-2"></i>Profile Picture
+                                </h5>
+                            </div>
+                            <div class="card-body text-center">
+                                <div class="profile-picture-section">
+                                    <div class="current-picture mb-3">
+                                        {% if current_user.profile_picture %}
+                                            <img src="{{ url_for('static', filename='uploads/' + current_user.profile_picture) }}" 
+                                                 alt="Current Profile Picture" class="profile-avatar" id="profilePreview">
+                                        {% else %}
+                                            <div class="profile-avatar bg-primary text-white d-flex align-items-center justify-content-center" id="profilePreview">
+                                                <i class="fas fa-user fa-3x"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="upload-section">
+                                        <input type="file" class="form-control" id="profile_picture" name="profile_picture" 
+                                               accept="image/*" onchange="previewImage(this)" style="display: none;">
+                                        <button type="button" class="btn btn-outline-primary me-2" onclick="$('#profile_picture').click()">
+                                            <i class="fas fa-upload me-1"></i>Choose New Picture
+                                        </button>
+                                        {% if current_user.profile_picture %}
+                                        <button type="button" class="btn btn-outline-danger" onclick="removeProfilePicture()">
+                                            <i class="fas fa-trash me-1"></i>Remove
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <small class="text-muted d-block mt-2">
+                                        Recommended: Square image, at least 200x200 pixels. Max file size: 5MB.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Personal Information -->
+                    <div class="col-12 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-user me-2"></i>Personal Information
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="full_name" class="form-label">Full Name *</label>
+                                        <input type="text" class="form-control" id="full_name" name="full_name" 
+                                               value="{{ current_user.full_name }}" required>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label for="email" class="form-label">Email Address</label>
+                                        <input type="email" class="form-control" id="email" 
+                                               value="{{ current_user.email }}" disabled>
+                                        <small class="text-muted">Email cannot be changed. Contact admin if needed.</small>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label for="phone" class="form-label">Phone Number</label>
+                                        <input type="tel" class="form-control" id="phone" name="phone" 
+                                               value="{{ current_user.phone or '' }}" placeholder="+1 (555) 123-4567">
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label for="department" class="form-label">Department</label>
+                                        <select class="form-select" id="department" name="department">
+                                            <option value="">Select Department</option>
+                                            <option value="Mathematics" {% if current_user.department == 'Mathematics' %}selected{% endif %}>Mathematics</option>
+                                            <option value="Science" {% if current_user.department == 'Science' %}selected{% endif %}>Science</option>
+                                            <option value="English" {% if current_user.department == 'English' %}selected{% endif %}>English</option>
+                                            <option value="History" {% if current_user.department == 'History' %}selected{% endif %}>History</option>
+                                            <option value="Physical Education" {% if current_user.department == 'Physical Education' %}selected{% endif %}>Physical Education</option>
+                                            <option value="Art" {% if current_user.department == 'Art' %}selected{% endif %}>Art</option>
+                                            <option value="Music" {% if current_user.department == 'Music' %}selected{% endif %}>Music</option>
+                                            <option value="Computer Science" {% if current_user.department == 'Computer Science' %}selected{% endif %}>Computer Science</option>
+                                            <option value="Special Education" {% if current_user.department == 'Special Education' %}selected{% endif %}>Special Education</option>
+                                            <option value="Administration" {% if current_user.department == 'Administration' %}selected{% endif %}>Administration</option>
+                                            <option value="Other" {% if current_user.department == 'Other' %}selected{% endif %}>Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bio Section -->
+                    <div class="col-12 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-info-circle me-2"></i>About Me
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="bio" class="form-label">Bio</label>
+                                    <textarea class="form-control" id="bio" name="bio" rows="4" 
+                                              placeholder="Tell us about yourself, your teaching experience, interests, etc.">{{ current_user.bio or '' }}</textarea>
+                                    <div class="form-text">
+                                        Share a brief description about yourself. This will be visible to other users.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Account Settings -->
+                    <div class="col-12 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-cog me-2"></i>Account Settings
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Username</label>
+                                        <input type="text" class="form-control" value="{{ current_user.username }}" disabled>
+                                        <small class="text-muted">Username cannot be changed.</small>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label class="form-label">Role</label>
+                                        <input type="text" class="form-control" value="{{ current_user.role.title() }}" disabled>
+                                        <small class="text-muted">Role is assigned by administrators.</small>
+                                    </div>
+                                    
+                                    <div class="col-12">
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            <strong>Password Change:</strong> To change your password, please contact the system administrator or use the password reset feature.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Privacy Settings -->
+                    <div class="col-12 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-shield-alt me-2"></i>Privacy & Notifications
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                                            <label class="form-check-label" for="emailNotifications">
+                                                Email Notifications
+                                            </label>
+                                            <div class="form-text">Receive email notifications about course updates and announcements.</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-12">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="profileVisibility" checked>
+                                            <label class="form-check-label" for="profileVisibility">
+                                                Public Profile
+                                            </label>
+                                            <div class="form-text">Allow other users to see your profile information.</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-12">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="progressSharing">
+                                            <label class="form-check-label" for="progressSharing">
+                                                Share Learning Progress
+                                            </label>
+                                            <div class="form-text">Allow instructors to see your detailed learning progress.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Last updated: {{ current_user.created_at.strftime('%B %d, %Y') }}
+                                        </small>
+                                    </div>
+                                    
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ url_for('profile') }}" class="btn btn-outline-secondary">
+                                            <i class="fas fa-times me-1"></i>Cancel
+                                        </a>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save me-1"></i>Save Changes
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        // Check file size (5MB limit)
+        if (input.files[0].size > 5 * 1024 * 1024) {
+            showNotification('File size must be less than 5MB', 'error');
+            input.value = '';
+            return;
+        }
+        
+        // Check file type
+        if (!input.files[0].type.startsWith('image/')) {
+            showNotification('Please select a valid image file', 'error');
+            input.value = '';
+            return;
+        }
+        
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            $('#profilePreview').html(`<img src="${e.target.result}" alt="Profile Preview" class="profile-avatar">`);
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function removeProfilePicture() {
+    if (confirm('Are you sure you want to remove your profile picture?')) {
+        $('#profilePreview').html(`
+            <div class="profile-avatar bg-primary text-white d-flex align-items-center justify-content-center">
+                <i class="fas fa-user fa-3x"></i>
+            </div>
+        `);
+        $('#profile_picture').val('');
+        showNotification('Profile picture will be removed when you save changes', 'info');
+    }
+}
+
+// Form validation
+$(document).ready(function() {
+    $('form').on('submit', function(e) {
+        var fullName = $('#full_name').val().trim();
+        
+        if (!fullName) {
+            e.preventDefault();
+            showNotification('Full name is required', 'error');
+            $('#full_name').focus();
+            return false;
+        }
+        
+        if (fullName.length < 2) {
+            e.preventDefault();
+            showNotification('Full name must be at least 2 characters long', 'error');
+            $('#full_name').focus();
+            return false;
+        }
+        
+        // Show loading spinner
+        showSpinner();
+    });
+    
+    // Character counter for bio
+    $('#bio').on('input', function() {
+        var length = $(this).val().length;
+        var maxLength = 500;
+        
+        if (length > maxLength) {
+            $(this).val($(this).val().substring(0, maxLength));
+            length = maxLength;
+        }
+        
+        // Update counter (if you want to add one)
+        // $('#bioCounter').text(length + '/' + maxLength);
+    });
+    
+    // Phone number formatting
+    $('#phone').on('input', function() {
+        var value = $(this).val().replace(/\D/g, '');
+        var formattedValue = '';
+        
+        if (value.length > 0) {
+            if (value.length <= 3) {
+                formattedValue = value;
+            } else if (value.length <= 6) {
+                formattedValue = '(' + value.substring(0, 3) + ') ' + value.substring(3);
+            } else {
+                formattedValue = '(' + value.substring(0, 3) + ') ' + value.substring(3, 6) + '-' + value.substring(6, 10);
+            }
+        }
+        
+        $(this).val(formattedValue);
+    });
+});
+
+// Unsaved changes warning
+var formChanged = false;
+
+$('form input, form textarea, form select').on('change', function() {
+    formChanged = true;
+});
+
+$(window).on('beforeunload', function() {
+    if (formChanged) {
+        return 'You have unsaved changes. Are you sure you want to leave?';
+    }
+});
+
+$('form').on('submit', function() {
+    formChanged = false;
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--primary-color);
+}
+
+.profile-picture-section {
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.upload-section {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.form-switch .form-check-input {
+    width: 2em;
+    margin-left: -2.5em;
+}
+
+.card {
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.alert {
+    border: none;
+    border-radius: 8px;
+}
+
+.btn {
+    border-radius: 6px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .upload-section {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .upload-section .btn {
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    .d-flex.gap-2 {
+        flex-direction: column;
+        gap: 0.5rem !important;
+    }
+    
+    .d-flex.gap-2 .btn {
+        width: 100%;
+    }
+}
+
+/* Form validation styles */
+.was-validated .form-control:valid {
+    border-color: #28a745;
+}
+
+.was-validated .form-control:invalid {
+    border-color: #dc3545;
+}
+
+.invalid-feedback {
+    display: block;
+}
+
+/* Loading state */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Custom file input styling */
+.form-control[type="file"] {
+    padding: 0.375rem 0.75rem;
+}
+
+.form-control[type="file"]::-webkit-file-upload-button {
+    padding: 0.375rem 0.75rem;
+    margin: -0.375rem -0.75rem;
+    margin-inline-end: 0.75rem;
+    color: #495057;
+    background-color: #e9ecef;
+    border: 0;
+    border-radius: 0.25rem;
+}
+</style>
+{% endblock %}

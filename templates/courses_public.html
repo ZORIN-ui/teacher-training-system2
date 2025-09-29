@@ -1,0 +1,282 @@
+{% extends "base_simple.html" %}
+
+{% block title %}Browse Courses - Teacher Training System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-2">
+                        <i class="fas fa-book me-2"></i>Browse Available Courses
+                    </h1>
+                    <p class="text-muted">Discover professional development courses to enhance your teaching skills</p>
+                </div>
+                <div>
+                    <span class="badge bg-primary fs-6">{{ courses|length }} Courses Available</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-3">
+                            <label for="categoryFilter" class="form-label small">Filter by Category</label>
+                            <select class="form-select form-select-sm" id="categoryFilter" onchange="filterCourses()">
+                                <option value="">All Categories</option>
+                                <option value="Leadership Development">Leadership Development</option>
+                                <option value="Personal Transformation">Personal Transformation</option>
+                                <option value="Finance">Finance</option>
+                                <option value="Educational Administration">Educational Administration</option>
+                                <option value="Teaching Methods">Teaching Methods</option>
+                                <option value="Classroom Management">Classroom Management</option>
+                                <option value="Technology">Technology</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="levelFilter" class="form-label small">Filter by Level</label>
+                            <select class="form-select form-select-sm" id="levelFilter" onchange="filterCourses()">
+                                <option value="">All Levels</option>
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="searchInput" class="form-label small">Search Courses</label>
+                            <input type="text" class="form-control form-control-sm" id="searchInput" 
+                                   placeholder="Search by title or description..." onkeyup="filterCourses()">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small">&nbsp;</label>
+                            <button class="btn btn-outline-secondary btn-sm w-100" onclick="clearFilters()">
+                                <i class="fas fa-times me-1"></i>Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Grid -->
+    <div class="row" id="courseGrid">
+        {% if courses %}
+            {% for course in courses %}
+            <div class="col-lg-4 col-md-6 mb-4 course-item" 
+                 data-category="{{ course.category }}" 
+                 data-level="{{ course.level }}"
+                 data-title="{{ course.title.lower() }}"
+                 data-description="{{ course.description.lower() }}">
+                <div class="card course-card h-100">
+                    <!-- Course Thumbnail -->
+                    <div class="course-thumbnail bg-gradient text-white d-flex align-items-center justify-content-center" 
+                         style="height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="text-center">
+                            <i class="fas fa-graduation-cap fa-3x mb-2"></i>
+                            <div class="small">{{ course.category }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body d-flex flex-column">
+                        <div class="mb-2">
+                            <span class="badge bg-secondary">{{ course.category }}</span>
+                            <span class="badge bg-info ms-1">{{ course.level.title() }}</span>
+                            {% if course.is_published %}
+                                <span class="badge bg-success ms-1">Published</span>
+                            {% else %}
+                                <span class="badge bg-warning ms-1">Draft</span>
+                            {% endif %}
+                        </div>
+                        
+                        <h5 class="card-title">
+                            <a href="{{ url_for('course_detail', course_id=course.id) }}" 
+                               class="text-decoration-none">
+                                {{ course.title }}
+                            </a>
+                        </h5>
+                        
+                        <p class="card-text text-muted flex-grow-1">
+                            {{ course.description[:150] }}{% if course.description|length > 150 %}...{% endif %}
+                        </p>
+                        
+                        <div class="course-meta mb-3">
+                            <div class="d-flex justify-content-between align-items-center text-muted small">
+                                <span>
+                                    <i class="fas fa-user me-1"></i>{{ course.instructor_name or 'Instructor' }}
+                                </span>
+                                <span>
+                                    <i class="fas fa-clock me-1"></i>{{ course.duration_hours }}h
+                                </span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center text-muted small mt-1">
+                                <span>
+                                    <i class="fas fa-calendar me-1"></i>{{ course.created_at[:10] }}
+                                </span>
+                                <span>
+                                    <i class="fas fa-users me-1"></i>{{ course.enrollment_count or 0 }} enrolled
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-auto">
+                            <div class="d-grid gap-2">
+                                <a href="{{ url_for('course_detail', course_id=course.id) }}" 
+                                   class="btn btn-outline-primary">
+                                    <i class="fas fa-eye me-1"></i>View Details
+                                </a>
+                                {% if session.user_id %}
+                                    <form method="POST" action="{{ url_for('enroll_course', course_id=course.id) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-success btn-sm w-100">
+                                            <i class="fas fa-plus me-1"></i>Request Enrollment
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <a href="{{ url_for('login') }}" 
+                                       class="btn btn-outline-success btn-sm">
+                                        <i class="fas fa-sign-in-alt me-1"></i>Login to Enroll
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No courses available</h4>
+                    <p class="text-muted">Check back later for new professional development courses.</p>
+                    {% if not session.user_id %}
+                        <a href="{{ url_for('register') }}" class="btn btn-primary mt-3">
+                            <i class="fas fa-user-plus me-1"></i>Register to Get Notified
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- No Results Message (Hidden by default) -->
+    <div class="row d-none" id="noResults">
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No courses match your search</h4>
+                <p class="text-muted">Try adjusting your filters or search terms.</p>
+                <button class="btn btn-outline-primary" onclick="clearFilters()">
+                    <i class="fas fa-times me-1"></i>Clear All Filters
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.course-card {
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+}
+
+.course-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    border-color: #007bff;
+}
+
+.course-thumbnail {
+    position: relative;
+    overflow: hidden;
+}
+
+.course-meta {
+    border-top: 1px solid #f0f0f0;
+    padding-top: 0.75rem;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.bg-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.course-item {
+    transition: opacity 0.3s ease;
+}
+
+.course-item.hidden {
+    display: none !important;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterCourses() {
+    const categoryFilter = document.getElementById('categoryFilter').value.toLowerCase();
+    const levelFilter = document.getElementById('levelFilter').value.toLowerCase();
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    
+    const courseItems = document.querySelectorAll('.course-item');
+    let visibleCount = 0;
+    
+    courseItems.forEach(item => {
+        const category = item.dataset.category.toLowerCase();
+        const level = item.dataset.level.toLowerCase();
+        const title = item.dataset.title;
+        const description = item.dataset.description;
+        
+        const categoryMatch = !categoryFilter || category.includes(categoryFilter);
+        const levelMatch = !levelFilter || level === levelFilter;
+        const searchMatch = !searchInput || 
+                           title.includes(searchInput) || 
+                           description.includes(searchInput) ||
+                           category.includes(searchInput);
+        
+        if (categoryMatch && levelMatch && searchMatch) {
+            item.classList.remove('hidden');
+            visibleCount++;
+        } else {
+            item.classList.add('hidden');
+        }
+    });
+    
+    // Show/hide no results message
+    const noResults = document.getElementById('noResults');
+    const courseGrid = document.getElementById('courseGrid');
+    
+    if (visibleCount === 0 && courseItems.length > 0) {
+        noResults.classList.remove('d-none');
+        courseGrid.classList.add('d-none');
+    } else {
+        noResults.classList.add('d-none');
+        courseGrid.classList.remove('d-none');
+    }
+}
+
+function clearFilters() {
+    document.getElementById('categoryFilter').value = '';
+    document.getElementById('levelFilter').value = '';
+    document.getElementById('searchInput').value = '';
+    filterCourses();
+}
+
+// Initialize filters on page load
+document.addEventListener('DOMContentLoaded', function() {
+    filterCourses();
+});
+</script>
+{% endblock %}

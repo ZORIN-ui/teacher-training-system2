@@ -1,0 +1,406 @@
+{% extends "base_simple.html" %}
+
+{% block title %}Manage Course Modules - {{ course.title }} - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h2 mb-0">
+                        <i class="fas fa-puzzle-piece me-2 text-primary"></i>
+                        Manage Course Modules
+                    </h1>
+                    <p class="text-muted mb-0">{{ course.title }}</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('admin_create_module', course_id=course.id) }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Add Module
+                    </a>
+                    <a href="{{ url_for('admin_course_enrollments', course_id=course.id) }}" class="btn btn-outline-success">
+                        <i class="fas fa-users me-1"></i>View Enrollments
+                    </a>
+                    <a href="{{ url_for('admin_edit_course', course_id=course.id) }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-edit me-1"></i>Edit Course
+                    </a>
+                    <a href="{{ url_for('admin_courses') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Courses
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">{{ modules|length if modules else 0 }}</h3>
+                    <small>Total Modules</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">{{ enrollment_stats.total_enrolled or 0 }}</h3>
+                    <small>Students Enrolled</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">{{ enrollment_stats.completed or 0 }}</h3>
+                    <small>Completed</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">
+                        {% if enrollment_stats.avg_progress %}
+                            {{ "%.1f"|format(enrollment_stats.avg_progress) }}%
+                        {% else %}
+                            0%
+                        {% endif %}
+                    </h3>
+                    <small>Avg Progress</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Course Modules
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if modules %}
+                        <div class="module-list">
+                            {% for module in modules %}
+                            <div class="module-item border rounded p-4 mb-3 position-relative">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <span class="badge bg-primary me-3 fs-6">Module {{ module.lesson_order }}</span>
+                                            <h5 class="mb-0">{{ module.title }}</h5>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <p class="text-muted mb-2">
+                                                {{ module.content[:300] }}{% if module.content|length > 300 %}...{% endif %}
+                                            </p>
+                                        </div>
+                                        
+                                        <!-- Learning Notes Section -->
+                                        {% if module.learning_objectives %}
+                                        <div class="mb-3">
+                                            <h6 class="text-success mb-2">
+                                                <i class="fas fa-sticky-note me-1"></i>Learning Notes
+                                            </h6>
+                                            <div class="bg-light p-3 rounded">
+                                                <p class="mb-0 small">{{ module.learning_objectives }}</p>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <!-- Questions Section -->
+                                        {% if module.additional_resources %}
+                                        <div class="mb-3">
+                                            <h6 class="text-info mb-2">
+                                                <i class="fas fa-question-circle me-1"></i>Assessment Questions
+                                            </h6>
+                                            <div class="bg-info bg-opacity-10 p-3 rounded">
+                                                <p class="mb-0 small">{{ module.additional_resources }}</p>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <div class="d-flex align-items-center flex-wrap gap-3 mb-3">
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-tag me-1"></i>{{ module.lesson_type.title() }}
+                                            </span>
+                                            {% if module.duration_minutes %}
+                                                <span class="text-muted">
+                                                    <i class="fas fa-clock me-1"></i>{{ module.duration_minutes }} minutes
+                                                </span>
+                                            {% endif %}
+                                            <span class="text-muted">
+                                                <i class="fas fa-calendar me-1"></i>Created {{ module.created_at[:10] }}
+                                            </span>
+                                        </div>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary" 
+                                                        onclick="previewModule({{ module.id }}, '{{ module.title }}')" 
+                                                        title="Preview Module">
+                                                    <i class="fas fa-eye me-1"></i>Preview
+                                                </button>
+                                                <button class="btn btn-outline-warning" 
+                                                        onclick="editModule({{ module.id }})" 
+                                                        title="Edit Module">
+                                                    <i class="fas fa-edit me-1"></i>Edit
+                                                </button>
+                                                <button class="btn btn-outline-success" 
+                                                        onclick="manageNotes({{ module.id }}, '{{ module.title }}')" 
+                                                        title="Manage Notes & Questions">
+                                                    <i class="fas fa-sticky-note me-1"></i>Notes & Questions
+                                                </button>
+                                                <button class="btn btn-outline-info" 
+                                                        onclick="duplicateModule({{ module.id }})" 
+                                                        title="Duplicate Module">
+                                                    <i class="fas fa-copy me-1"></i>Duplicate
+                                                </button>
+                                                <button class="btn btn-outline-danger" 
+                                                        onclick="deleteModule({{ module.id }}, '{{ module.title }}')" 
+                                                        title="Delete Module">
+                                                    <i class="fas fa-trash me-1"></i>Delete
+                                                </button>
+                                            </div>
+                                            
+                                            <div class="module-controls">
+                                                {% if module.lesson_order > 1 %}
+                                                    <button class="btn btn-sm btn-outline-secondary" 
+                                                            onclick="moveModule({{ module.id }}, 'up')" 
+                                                            title="Move Up">
+                                                        <i class="fas fa-arrow-up"></i>
+                                                    </button>
+                                                {% endif %}
+                                                {% if module.lesson_order < modules|length %}
+                                                    <button class="btn btn-sm btn-outline-secondary" 
+                                                            onclick="moveModule({{ module.id }}, 'down')" 
+                                                            title="Move Down">
+                                                        <i class="fas fa-arrow-down"></i>
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-puzzle-piece fa-4x text-muted mb-4"></i>
+                            <h4 class="text-muted mb-3">No Modules Created Yet</h4>
+                            <p class="text-muted mb-4">Start building your course content by adding your first module with notes and questions.</p>
+                            <a href="{{ url_for('admin_create_module', course_id=course.id) }}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-plus me-2"></i>Create Your First Module
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Course Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Course Title:</strong><br>
+                        {{ course.title }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>Category:</strong><br>
+                        <span class="badge bg-secondary">{{ course.category }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Level:</strong><br>
+                        <span class="badge bg-info">{{ course.level.title() }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Status:</strong><br>
+                        {% if course.is_published %}
+                            <span class="badge bg-success">Published</span>
+                        {% else %}
+                            <span class="badge bg-warning">Draft</span>
+                        {% endif %}
+                    </div>
+                    {% if course.duration_hours %}
+                    <div class="mb-3">
+                        <strong>Duration:</strong><br>
+                        {{ course.duration_hours }} hours
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-outline-primary">
+                            <i class="fas fa-eye me-1"></i>Preview Course
+                        </a>
+                        <a href="{{ url_for('admin_course_enrollments', course_id=course.id) }}" class="btn btn-outline-success">
+                            <i class="fas fa-users me-1"></i>View Enrollments
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-lightbulb me-2 text-warning"></i>Module Management Tips
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Add clear learning notes for each module</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Include assessment questions to test understanding</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Keep modules focused on single topics</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Use interactive elements to engage learners</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Provide additional resources for deeper learning</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Module Preview Modal -->
+<div class="modal fade" id="moduleModal" tabindex="-1" aria-labelledby="moduleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="moduleModalLabel">Module Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="moduleContent">
+                <!-- Module content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notes & Questions Management Modal -->
+<div class="modal fade" id="notesModal" tabindex="-1" aria-labelledby="notesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notesModalLabel">Manage Notes & Questions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="notesContent">
+                <form id="notesForm">
+                    <div class="mb-4">
+                        <label for="learningNotes" class="form-label">
+                            <i class="fas fa-sticky-note me-2 text-success"></i>Learning Notes
+                        </label>
+                        <textarea class="form-control" id="learningNotes" rows="4" 
+                                  placeholder="Add important notes, key concepts, and learning objectives that learners should focus on..."></textarea>
+                        <div class="form-text">These notes will be displayed to learners as key takeaways for this module.</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="assessmentQuestions" class="form-label">
+                            <i class="fas fa-question-circle me-2 text-info"></i>Assessment Questions
+                        </label>
+                        <textarea class="form-control" id="assessmentQuestions" rows="6" 
+                                  placeholder="Add questions that learners will attempt to test their understanding. Format as:&#10;1. Question text?&#10;   a) Option A&#10;   b) Option B&#10;   c) Option C&#10;   Answer: a&#10;&#10;2. Next question..."></textarea>
+                        <div class="form-text">Add multiple choice questions, true/false, or open-ended questions to assess learner comprehension.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="saveNotesAndQuestions()">
+                    <i class="fas fa-save me-1"></i>Save Notes & Questions
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function previewModule(moduleId, moduleTitle) {
+    document.getElementById('moduleModalLabel').textContent = `Preview: ${moduleTitle}`;
+    document.getElementById('moduleContent').innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading module content...</p>
+        </div>
+    `;
+    
+    // In a full implementation, this would load actual module content via AJAX
+    setTimeout(() => {
+        document.getElementById('moduleContent').innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Module preview functionality would display the full module content here, including notes and questions.
+            </div>
+        `;
+    }, 1000);
+    
+    new bootstrap.Modal(document.getElementById('moduleModal')).show();
+}
+
+function editModule(moduleId) {
+    // Redirect to edit module page
+    window.location.href = `/admin/courses/{{ course.id }}/modules/${moduleId}/edit`;
+}
+
+function manageNotes(moduleId, moduleTitle) {
+    document.getElementById('notesModalLabel').textContent = `Notes & Questions: ${moduleTitle}`;
+    
+    // In a full implementation, this would load existing notes and questions via AJAX
+    // For now, we'll show empty form
+    document.getElementById('learningNotes').value = '';
+    document.getElementById('assessmentQuestions').value = '';
+    
+    // Store current module ID for saving
+    document.getElementById('notesForm').setAttribute('data-module-id', moduleId);
+    
+    new bootstrap.Modal(document.getElementById('notesModal')).show();
+}
+
+function saveNotesAndQuestions() {
+    const moduleId = document.getElementById('notesForm').getAttribute('data-module-id');
+    const notes = document.getElementById('learningNotes').value;
+    const questions = document.getElementById('assessmentQuestions').value;
+    
+    // In a full implementation, this would save via AJAX
+    if (notes.trim() || questions.trim()) {
+        alert(`Notes and questions would be saved for module ${moduleId}:\n\nNotes: ${notes.substring(0, 100)}...\nQuestions: ${questions.substring(0, 100)}...`);
+        bootstrap.Modal.getInstance(document.getElementById('notesModal')).hide();
+        // Refresh page to show updated content
+        location.reload();
+    } else {
+        alert('Please add some notes or questions before saving.');
+    }
+}
+
+function duplicateModule(moduleId) {
+    if (confirm('Are you sure you want to duplicate this module? This will create a copy with all notes and questions.')) {
+        // In a full implementation, this would duplicate the module via AJAX
+        alert('Duplicate module functionality would be implemented here for module ' + moduleId);
+    }
+}
+
+function deleteModule(moduleId, moduleTitle) {
+    if (confirm(`Are you sure you want to delete the module "${moduleTitle}"? This will also delete all associated notes and questions. This action cannot be undone.`)) {
+        // In a full implementation, this would delete the module via AJAX
+        alert('Delete module functionality would be implemented here for module ' + moduleId);
+    }
+}
+
+function moveModule(moduleId, direction) {
+    // In a full implementation, this would reorder modules via AJAX
+    alert(`Move module ${direction} functionality would be implemented here for module ${moduleId}`);
+}
+</script>
+{% endblock %}

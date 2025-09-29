@@ -1,0 +1,469 @@
+{% extends "base.html" %}
+
+{% block title %}{{ lesson.title }} - Teacher Training System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Navigation -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('courses') }}">Courses</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('course_detail', course_id=lesson.course.id) }}">{{ lesson.course.title }}</a></li>
+                    <li class="breadcrumb-item active">{{ lesson.title }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Lesson Content -->
+        <div class="col-lg-9">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-1">{{ lesson.title }}</h4>
+                        <div class="d-flex align-items-center text-muted">
+                            <span class="me-3">
+                                <i class="fas fa-{{ 'video' if lesson.lesson_type == 'video' else 'file-text' }} me-1"></i>
+                                {{ lesson.lesson_type.title() }}
+                            </span>
+                            {% if lesson.duration_minutes %}
+                            <span>
+                                <i class="fas fa-clock me-1"></i>
+                                {{ lesson.duration_minutes }} minutes
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-center">
+                        {% if progress.completed %}
+                            <span class="badge bg-success me-2">
+                                <i class="fas fa-check me-1"></i>Completed
+                            </span>
+                        {% endif %}
+                        
+                        {% if not progress.completed %}
+                        <button type="button" class="btn btn-success" onclick="markAsComplete()">
+                            <i class="fas fa-check me-1"></i>Mark Complete
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Video Content -->
+                    {% if lesson.lesson_type == 'video' and lesson.video_url %}
+                    <div class="video-container mb-4">
+                        {% if 'youtube.com' in lesson.video_url or 'youtu.be' in lesson.video_url %}
+                            {% set video_id = lesson.video_url.split('/')[-1].split('?')[0] %}
+                            {% if 'watch?v=' in lesson.video_url %}
+                                {% set video_id = lesson.video_url.split('watch?v=')[1].split('&')[0] %}
+                            {% endif %}
+                            <iframe src="https://www.youtube.com/embed/{{ video_id }}" 
+                                    frameborder="0" allowfullscreen></iframe>
+                        {% else %}
+                            <video controls class="w-100" id="lessonVideo">
+                                <source src="{{ lesson.video_url }}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Document Content -->
+                    {% if lesson.lesson_type == 'document' and lesson.document_path %}
+                    <div class="document-viewer mb-4">
+                        <div class="bg-light p-3 rounded text-center">
+                            <i class="fas fa-file-pdf fa-3x text-danger mb-2"></i>
+                            <h6>Course Material</h6>
+                            <a href="{{ url_for('static', filename='course_materials/' + lesson.document_path) }}" 
+                               target="_blank" class="btn btn-outline-primary">
+                                <i class="fas fa-download me-1"></i>Download Document
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Lesson Content -->
+                    <div class="lesson-content">
+                        {{ lesson.content|safe }}
+                    </div>
+                </div>
+                
+                <!-- Lesson Navigation -->
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            {% if prev_lesson %}
+                                <a href="{{ url_for('lesson_view', lesson_id=prev_lesson.id) }}" 
+                                   class="btn btn-outline-secondary">
+                                    <i class="fas fa-chevron-left me-1"></i>Previous Lesson
+                                </a>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="text-center">
+                            <small class="text-muted">
+                                Lesson {{ lesson.order }} of {{ lesson.course.lessons|length }}
+                            </small>
+                        </div>
+                        
+                        <div>
+                            {% if next_lesson %}
+                                <a href="{{ url_for('lesson_view', lesson_id=next_lesson.id) }}" 
+                                   class="btn btn-primary">
+                                    Next Lesson <i class="fas fa-chevron-right ms-1"></i>
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('course_detail', course_id=lesson.course.id) }}" 
+                                   class="btn btn-success">
+                                    <i class="fas fa-trophy me-1"></i>Course Complete
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-3">
+            <!-- Course Progress -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">Course Progress</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <h4 class="text-primary">{{ lesson.course.title }}</h4>
+                    </div>
+                    
+                    <!-- Progress visualization would go here -->
+                    <div class="progress mb-2" style="height: 10px;">
+                        <div class="progress-bar" role="progressbar" style="width: 60%"></div>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <small class="text-muted">Progress</small>
+                        <small class="text-muted">60%</small>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <a href="{{ url_for('course_detail', course_id=lesson.course.id) }}" 
+                           class="btn btn-outline-primary btn-sm w-100">
+                            <i class="fas fa-list me-1"></i>View All Lessons
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Lesson Notes -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-sticky-note me-1"></i>My Notes
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <textarea class="form-control" rows="6" placeholder="Take notes about this lesson..." 
+                              id="lessonNotes"></textarea>
+                    <button type="button" class="btn btn-sm btn-primary mt-2 w-100" onclick="saveNotes()">
+                        <i class="fas fa-save me-1"></i>Save Notes
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-outline-info btn-sm" onclick="toggleBookmark()">
+                            <i class="fas fa-bookmark me-1"></i>Bookmark Lesson
+                        </button>
+                        
+                        <button type="button" class="btn btn-outline-warning btn-sm" onclick="reportIssue()">
+                            <i class="fas fa-flag me-1"></i>Report Issue
+                        </button>
+                        
+                        <a href="{{ url_for('course_detail', course_id=lesson.course.id) }}" 
+                           class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Course
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Time Tracking -->
+<div id="timeTracker" style="display: none;">
+    <input type="hidden" id="lessonId" value="{{ lesson.id }}">
+    <input type="hidden" id="startTime" value="">
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let startTime = Date.now();
+let lessonId = {{ lesson.id }};
+
+// Initialize video tracking if video exists
+$(document).ready(function() {
+    $('#startTime').val(startTime);
+    
+    // Video event handlers
+    if ($('#lessonVideo').length) {
+        VideoTracker.init();
+        
+        $('#lessonVideo').on('ended', function() {
+            if (!{{ progress.completed|tojson }}) {
+                markAsComplete();
+            }
+        });
+    }
+    
+    // Load existing notes
+    loadNotes();
+    
+    // Auto-save notes every 30 seconds
+    setInterval(saveNotes, 30000);
+});
+
+function markAsComplete() {
+    let timeSpent = Math.floor((Date.now() - startTime) / 1000 / 60); // Convert to minutes
+    
+    if ($('#lessonVideo').length) {
+        timeSpent = VideoTracker.getTotalWatchTime();
+    }
+    
+    showSpinner();
+    
+    updateProgress(lessonId, timeSpent).done(function() {
+        hideSpinner();
+        
+        // Update UI
+        $('.card-header .btn-success').replaceWith(
+            '<span class="badge bg-success"><i class="fas fa-check me-1"></i>Completed</span>'
+        );
+        
+        // Show completion message
+        showNotification('Lesson completed successfully!', 'success');
+        
+        // Auto-advance to next lesson after 2 seconds
+        setTimeout(function() {
+            {% if next_lesson %}
+                window.location.href = "{{ url_for('lesson_view', lesson_id=next_lesson.id) }}";
+            {% else %}
+                window.location.href = "{{ url_for('course_detail', course_id=lesson.course.id) }}";
+            {% endif %}
+        }, 2000);
+    }).fail(function() {
+        hideSpinner();
+        showNotification('Error marking lesson as complete. Please try again.', 'error');
+    });
+}
+
+function saveNotes() {
+    let notes = $('#lessonNotes').val();
+    
+    // Save to localStorage for now (could be enhanced to save to server)
+    localStorage.setItem('lesson_notes_' + lessonId, notes);
+    
+    if (notes.trim()) {
+        showNotification('Notes saved!', 'success');
+    }
+}
+
+function loadNotes() {
+    let savedNotes = localStorage.getItem('lesson_notes_' + lessonId);
+    if (savedNotes) {
+        $('#lessonNotes').val(savedNotes);
+    }
+}
+
+function toggleBookmark() {
+    // Implementation for bookmarking
+    showNotification('Lesson bookmarked!', 'info');
+}
+
+function reportIssue() {
+    // Implementation for reporting issues
+    let issue = prompt('Please describe the issue:');
+    if (issue) {
+        showNotification('Issue reported. Thank you for your feedback!', 'info');
+    }
+}
+
+// Keyboard shortcuts
+$(document).keydown(function(e) {
+    // Ctrl/Cmd + Right Arrow = Next lesson
+    if ((e.ctrlKey || e.metaKey) && e.keyCode === 39) {
+        {% if next_lesson %}
+            window.location.href = "{{ url_for('lesson_view', lesson_id=next_lesson.id) }}";
+        {% endif %}
+        e.preventDefault();
+    }
+    
+    // Ctrl/Cmd + Left Arrow = Previous lesson
+    if ((e.ctrlKey || e.metaKey) && e.keyCode === 37) {
+        {% if prev_lesson %}
+            window.location.href = "{{ url_for('lesson_view', lesson_id=prev_lesson.id) }}";
+        {% endif %}
+        e.preventDefault();
+    }
+    
+    // Ctrl/Cmd + Enter = Mark complete
+    if ((e.ctrlKey || e.metaKey) && e.keyCode === 13) {
+        if (!{{ progress.completed|tojson }}) {
+            markAsComplete();
+        }
+        e.preventDefault();
+    }
+});
+
+// Track time spent on page
+window.addEventListener('beforeunload', function() {
+    let timeSpent = Math.floor((Date.now() - startTime) / 1000 / 60);
+    
+    // Send time tracking data (could be enhanced)
+    if (timeSpent > 0) {
+        navigator.sendBeacon('/api/track_time', JSON.stringify({
+            lesson_id: lessonId,
+            time_spent: timeSpent
+        }));
+    }
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.lesson-content {
+    line-height: 1.8;
+    font-size: 1.1rem;
+}
+
+.lesson-content h1, .lesson-content h2, .lesson-content h3 {
+    color: var(--primary-color);
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+.lesson-content p {
+    margin-bottom: 1.5rem;
+}
+
+.lesson-content ul, .lesson-content ol {
+    margin-bottom: 1.5rem;
+    padding-left: 2rem;
+}
+
+.lesson-content blockquote {
+    border-left: 4px solid var(--primary-color);
+    padding-left: 1rem;
+    margin: 1.5rem 0;
+    font-style: italic;
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0 6px 6px 0;
+}
+
+.lesson-content code {
+    background-color: #f8f9fa;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+}
+
+.lesson-content pre {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+}
+
+.video-container {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.video-container iframe,
+.video-container video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.document-viewer {
+    border: 2px dashed #dee2e6;
+    border-radius: 10px;
+}
+
+.card-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+}
+
+.progress {
+    height: 10px;
+    border-radius: 10px;
+}
+
+.progress-bar {
+    border-radius: 10px;
+}
+
+.breadcrumb {
+    background-color: transparent;
+    padding: 0;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: ">";
+}
+
+#lessonNotes {
+    resize: vertical;
+    min-height: 120px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .lesson-content {
+        font-size: 1rem;
+    }
+    
+    .card-header .d-flex {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+    
+    .card-header .d-flex > div:last-child {
+        margin-top: 1rem;
+    }
+    
+    .card-footer .d-flex {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .card-footer .d-flex > div {
+        text-align: center;
+    }
+}
+</style>
+{% endblock %}

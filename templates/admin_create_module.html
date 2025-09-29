@@ -1,0 +1,213 @@
+{% extends "base_simple.html" %}
+
+{% block title %}Create Module - {{ course.title }} - Teacher Training System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-plus me-2"></i>Create New Module</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('admin_courses') }}">Courses</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('admin_course_modules', course_id=course.id) }}">{{ course.title }}</a></li>
+                            <li class="breadcrumb-item active">Create Module</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <a href="{{ url_for('admin_course_modules', course_id=course.id) }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Modules
+                    </a>
+                </div>
+            </div>
+
+            <!-- Course Info -->
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Creating module for: <strong>{{ course.title }}</strong> ({{ course.category }} - {{ course.level }})
+            </div>
+
+            <!-- Module Creation Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Module Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="row">
+                            <!-- Basic Information -->
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="title" class="form-label">Module Title <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="title" name="title" required>
+                                    <div class="form-text">Enter a clear, descriptive title for this module</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="content" class="form-label">Module Content <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="content" name="content" rows="8" required></textarea>
+                                    <div class="form-text">Enter the main content for this module. You can use Markdown formatting.</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="learning_objectives" class="form-label">Learning Objectives</label>
+                                    <textarea class="form-control" id="learning_objectives" name="learning_objectives" rows="3"></textarea>
+                                    <div class="form-text">What will students learn from this module? (Optional)</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="additional_resources" class="form-label">Additional Resources</label>
+                                    <textarea class="form-control" id="additional_resources" name="additional_resources" rows="3"></textarea>
+                                    <div class="form-text">Links, references, or additional materials (Optional)</div>
+                                </div>
+                            </div>
+
+                            <!-- Module Settings -->
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="lesson_type" class="form-label">Module Type <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="lesson_type" name="lesson_type" required>
+                                        <option value="">Select Type</option>
+                                        <option value="text">📄 Text Content</option>
+                                        <option value="video">🎥 Video</option>
+                                        <option value="audio">🎵 Audio</option>
+                                        <option value="presentation">📊 Presentation</option>
+                                        <option value="interactive">🖱️ Interactive</option>
+                                        <option value="quiz">❓ Quiz</option>
+                                        <option value="assignment">📝 Assignment</option>
+                                        <option value="discussion">💬 Discussion</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="duration_minutes" class="form-label">Duration (minutes)</label>
+                                    <input type="number" class="form-control" id="duration_minutes" name="duration_minutes" min="0" max="600">
+                                    <div class="form-text">Estimated time to complete</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="module_file" class="form-label">Upload File</label>
+                                    <input type="file" class="form-control" id="module_file" name="module_file" 
+                                           accept=".pdf,.doc,.docx,.ppt,.pptx,.mp4,.mp3,.zip,.txt,.md">
+                                    <div class="form-text">
+                                        Upload supporting files (PDF, DOC, PPT, MP4, MP3, ZIP, etc.)<br>
+                                        Max size: 50MB
+                                    </div>
+                                </div>
+
+                                <!-- Module Type Help -->
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Module Types</h6>
+                                        <small class="text-muted">
+                                            <strong>Text:</strong> Written content, articles<br>
+                                            <strong>Video:</strong> Video lessons, tutorials<br>
+                                            <strong>Audio:</strong> Podcasts, audio lectures<br>
+                                            <strong>Presentation:</strong> Slides, visual content<br>
+                                            <strong>Interactive:</strong> Hands-on activities<br>
+                                            <strong>Quiz:</strong> Knowledge assessments<br>
+                                            <strong>Assignment:</strong> Tasks, projects<br>
+                                            <strong>Discussion:</strong> Forum topics
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{{ url_for('admin_course_modules', course_id=course.id) }}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-2"></i>Cancel
+                                    </a>
+                                    <div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save me-2"></i>Create Module
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// File upload validation
+document.getElementById('module_file').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const maxSize = 50 * 1024 * 1024; // 50MB
+        if (file.size > maxSize) {
+            alert('File size must be less than 50MB');
+            e.target.value = '';
+            return;
+        }
+        
+        // Show file info
+        const fileInfo = document.createElement('div');
+        fileInfo.className = 'alert alert-info mt-2';
+        fileInfo.innerHTML = `<i class="fas fa-file me-2"></i>Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+        
+        // Remove existing file info
+        const existingInfo = e.target.parentNode.querySelector('.alert');
+        if (existingInfo) {
+            existingInfo.remove();
+        }
+        
+        e.target.parentNode.appendChild(fileInfo);
+    }
+});
+
+// Module type change handler
+document.getElementById('lesson_type').addEventListener('change', function(e) {
+    const type = e.target.value;
+    const contentField = document.getElementById('content');
+    
+    // Provide helpful placeholders based on module type
+    const placeholders = {
+        'text': 'Enter your text content here. You can use Markdown formatting for headers, lists, links, etc.',
+        'video': 'Describe the video content and provide any necessary instructions. Upload the video file using the file upload field.',
+        'audio': 'Describe the audio content and provide any listening instructions. Upload the audio file using the file upload field.',
+        'presentation': 'Describe the presentation content and key points. Upload the presentation file using the file upload field.',
+        'interactive': 'Describe the interactive activity, instructions, and expected outcomes.',
+        'quiz': 'Provide quiz instructions and any additional context. The actual quiz questions can be added later.',
+        'assignment': 'Describe the assignment requirements, deliverables, and submission instructions.',
+        'discussion': 'Provide the discussion topic, questions to consider, and participation guidelines.'
+    };
+    
+    if (placeholders[type]) {
+        contentField.placeholder = placeholders[type];
+    }
+});
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const title = document.getElementById('title').value.trim();
+    const content = document.getElementById('content').value.trim();
+    const type = document.getElementById('lesson_type').value;
+    
+    if (!title || !content || !type) {
+        e.preventDefault();
+        alert('Please fill in all required fields (Title, Content, and Module Type)');
+        return;
+    }
+    
+    // Show loading state
+    const submitBtn = document.querySelector('button[type="submit"]');
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating Module...';
+    submitBtn.disabled = true;
+});
+</script>
+{% endblock %}

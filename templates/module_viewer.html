@@ -1,0 +1,382 @@
+{% extends "base_simple.html" %}
+
+{% block title %}{{ module.title }} - Teacher Training System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Module Content -->
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-book-reader me-2"></i>{{ module.title }}</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('courses') }}">Courses</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('course_modules', course_id=module.course_id) }}">{{ module.course_title }}</a></li>
+                            <li class="breadcrumb-item active">{{ module.title }}</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    {% if progress and progress.completed %}
+                    <span class="badge bg-success fs-6">
+                        <i class="fas fa-check me-1"></i>Completed
+                    </span>
+                    {% else %}
+                    <span class="badge bg-warning fs-6">
+                        <i class="fas fa-clock me-1"></i>In Progress
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Module Info Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-center">
+                                {% set type_icons = {
+                                    'text': 'fas fa-file-alt',
+                                    'video': 'fas fa-video',
+                                    'audio': 'fas fa-volume-up',
+                                    'presentation': 'fas fa-presentation',
+                                    'interactive': 'fas fa-mouse-pointer',
+                                    'quiz': 'fas fa-question-circle',
+                                    'assignment': 'fas fa-tasks',
+                                    'discussion': 'fas fa-comments'
+                                } %}
+                                <i class="{{ type_icons.get(module.lesson_type, 'fas fa-file') }} me-2"></i>
+                                <span class="badge bg-primary me-2">Module {{ module.lesson_order }}</span>
+                                <span class="badge bg-light text-dark">{{ module.lesson_type.title() }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            {% if module.duration_minutes %}
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>{{ module.duration_minutes }} minutes
+                            </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Learning Objectives -->
+                    {% if module.learning_objectives %}
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-bullseye me-2"></i>Learning Objectives</h6>
+                        <p class="mb-0">{{ module.learning_objectives }}</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Module Content -->
+                    <div class="module-content">
+                        {{ module.content | replace('\n', '<br>') | safe }}
+                    </div>
+
+                    <!-- Additional Resources -->
+                    {% if module.additional_resources %}
+                    <div class="mt-4">
+                        <h6><i class="fas fa-link me-2"></i>Additional Resources</h6>
+                        <div class="alert alert-light">
+                            {{ module.additional_resources | replace('\n', '<br>') | safe }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- File Downloads -->
+                    {% if '**File Path:**' in module.content %}
+                    <div class="mt-4">
+                        <h6><i class="fas fa-download me-2"></i>Downloads</h6>
+                        <div class="alert alert-secondary">
+                            <p class="mb-2">This module includes downloadable files:</p>
+                            {% for line in module.content.split('\n') %}
+                                {% if '**File Path:**' in line %}
+                                {% set file_path = line.replace('**File Path:**', '').strip() %}
+                                <a href="{{ file_path }}" class="btn btn-outline-primary btn-sm me-2" target="_blank">
+                                    <i class="fas fa-download me-1"></i>Download File
+                                </a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Completion Section -->
+            {% if not (progress and progress.completed) %}
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5>Mark as Complete</h5>
+                    <p class="text-muted">Have you finished studying this module?</p>
+                    <button type="button" class="btn btn-success" id="completeBtn">
+                        <i class="fas fa-check me-2"></i>Mark as Completed
+                    </button>
+                </div>
+            </div>
+            {% else %}
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <h5 class="text-success">
+                        <i class="fas fa-check-circle me-2"></i>Module Completed!
+                    </h5>
+                    <p class="text-muted">
+                        You completed this module on {{ progress.completed_at.split(' ')[0] if progress.completed_at else 'N/A' }}
+                        {% if progress.time_spent %}
+                        <br>Time spent: {{ progress.time_spent }} minutes
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Navigation -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-list me-2"></i>Course Modules</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for mod in all_modules %}
+                        <div class="list-group-item {{ 'active' if mod.id == module.id else '' }}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-primary me-2">{{ mod.lesson_order }}</span>
+                                        {% if mod.id == module.id %}
+                                        <strong>{{ mod.title }}</strong>
+                                        {% else %}
+                                        <a href="{{ url_for('student_view_module', module_id=mod.id) }}" class="text-decoration-none">
+                                            {{ mod.title }}
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted">{{ mod.lesson_type.title() }}</small>
+                                </div>
+                                <div>
+                                    {% set mod_progress = all_modules | selectattr('id', 'equalto', mod.id) | first %}
+                                    {% if mod_progress and mod_progress.get('progress') and mod_progress.progress.completed %}
+                                    <i class="fas fa-check-circle text-success"></i>
+                                    {% else %}
+                                    <i class="fas fa-circle text-muted"></i>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        {% set current_index = -1 %}
+                        {% set prev_module = none %}
+                        {% set next_module = none %}
+                        
+                        {% for mod in all_modules %}
+                            {% if mod.id == module.id %}
+                                {% set current_index = loop.index0 %}
+                                {% if loop.index0 > 0 %}
+                                    {% set prev_module = all_modules[loop.index0 - 1] %}
+                                {% endif %}
+                                {% if loop.index0 < all_modules | length - 1 %}
+                                    {% set next_module = all_modules[loop.index0 + 1] %}
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if prev_module %}
+                        <a href="{{ url_for('student_view_module', module_id=prev_module.id) }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-chevron-left me-1"></i>Previous
+                        </a>
+                        {% else %}
+                        <span></span>
+                        {% endif %}
+                        
+                        {% if next_module %}
+                        <a href="{{ url_for('student_view_module', module_id=next_module.id) }}" class="btn btn-outline-primary btn-sm">
+                            Next<i class="fas fa-chevron-right ms-1"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-chart-line me-2"></i>Your Progress</h6>
+                </div>
+                <div class="card-body">
+                    {% set completed_count = all_modules | selectattr('progress') | selectattr('progress.completed', 'equalto', 1) | list | length %}
+                    {% set total_count = all_modules | length %}
+                    {% set progress_percentage = (completed_count / total_count * 100) | round(1) if total_count > 0 else 0 %}
+                    
+                    <div class="text-center mb-3">
+                        <div class="progress mb-2" style="height: 10px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {{ progress_percentage }}%" 
+                                 aria-valuenow="{{ progress_percentage }}" 
+                                 aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <h6 class="text-primary">{{ total_count }}</h6>
+                                <small class="text-muted">Total</small>
+                            </div>
+                            <div class="col-4">
+                                <h6 class="text-success">{{ completed_count }}</h6>
+                                <small class="text-muted">Done</small>
+                            </div>
+                            <div class="col-4">
+                                <h6 class="text-warning">{{ progress_percentage }}%</h6>
+                                <small class="text-muted">Progress</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <a href="{{ url_for('course_modules', course_id=module.course_id) }}" class="btn btn-outline-primary">
+                            <i class="fas fa-list me-2"></i>View All Modules
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.module-content {
+    font-size: 1.1em;
+    line-height: 1.6;
+}
+
+.module-content h1, .module-content h2, .module-content h3 {
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+.module-content p {
+    margin-bottom: 1em;
+}
+
+.module-content ul, .module-content ol {
+    margin-bottom: 1em;
+    padding-left: 2em;
+}
+
+.progress {
+    border-radius: 10px;
+}
+
+.progress-bar {
+    border-radius: 10px;
+}
+
+.list-group-item.active {
+    background-color: #e3f2fd;
+    border-color: #2196f3;
+    color: #1976d2;
+}
+
+.list-group-item.active strong {
+    color: #1976d2;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.alert {
+    border: none;
+    border-radius: 8px;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let startTime = Date.now();
+
+// Complete module functionality
+document.getElementById('completeBtn')?.addEventListener('click', function() {
+    const timeSpent = Math.round((Date.now() - startTime) / 1000 / 60); // minutes
+    
+    // Show confirmation
+    if (confirm('Mark this module as completed?')) {
+        // Show loading state
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Marking Complete...';
+        this.disabled = true;
+        
+        // Send completion request
+        fetch(`/module/{{ module.id }}/complete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `time_spent=${timeSpent}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Reload page to show completion status
+                location.reload();
+            } else {
+                alert('Failed to mark module as complete: ' + data.message);
+                // Reset button
+                this.innerHTML = '<i class="fas fa-check me-2"></i>Mark as Completed';
+                this.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+            // Reset button
+            this.innerHTML = '<i class="fas fa-check me-2"></i>Mark as Completed';
+            this.disabled = false;
+        });
+    }
+});
+
+// Keyboard navigation
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'ArrowLeft') {
+            // Previous module
+            const prevBtn = document.querySelector('a[href*="view_module"]:has(.fa-chevron-left)');
+            if (prevBtn) {
+                e.preventDefault();
+                window.location.href = prevBtn.href;
+            }
+        } else if (e.key === 'ArrowRight') {
+            // Next module
+            const nextBtn = document.querySelector('a[href*="view_module"]:has(.fa-chevron-right)');
+            if (nextBtn) {
+                e.preventDefault();
+                window.location.href = nextBtn.href;
+            }
+        }
+    }
+});
+
+// Auto-save reading progress (optional)
+let progressTimer = setInterval(function() {
+    // Could implement auto-save of reading progress here
+}, 30000); // Every 30 seconds
+
+// Clean up timer when leaving page
+window.addEventListener('beforeunload', function() {
+    clearInterval(progressTimer);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,239 @@
+{% extends "base_simple.html" %}
+
+{% block title %}Dashboard - Teacher Training System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="bg-primary text-white rounded p-4">
+                <h1 class="h3 mb-2">
+                    <i class="fas fa-tachometer-alt me-2"></i>
+                    Welcome back, {{ session.full_name }}!
+                </h1>
+                <p class="mb-0 opacity-75">
+                    Continue your learning journey and track your progress
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="card-title">{{ total_courses }}</h4>
+                            <p class="card-text">Total Courses</p>
+                        </div>
+                        <div class="opacity-75">
+                            <i class="fas fa-book fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="card-title">{{ completed_courses }}</h4>
+                            <p class="card-text">Completed</p>
+                        </div>
+                        <div class="opacity-75">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="card-title">{{ in_progress_courses }}</h4>
+                            <p class="card-text">In Progress</p>
+                        </div>
+                        <div class="opacity-75">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="card-title">0</h4>
+                            <p class="card-text">Certificates</p>
+                        </div>
+                        <div class="opacity-75">
+                            <i class="fas fa-certificate fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- My Courses -->
+        <div class="col-lg-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-graduation-cap me-2"></i>My Courses
+                    </h5>
+                    <a href="{{ url_for('courses') }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-plus me-1"></i>Browse Courses
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if enrollments %}
+                        <div class="row">
+                            {% for enrollment in enrollments %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <a href="{{ url_for('course_detail', course_id=enrollment.course_id) }}" 
+                                               class="text-decoration-none">
+                                                {{ enrollment.title }}
+                                            </a>
+                                        </h6>
+                                        <p class="card-text text-muted small">
+                                            {{ enrollment.description[:100] }}...
+                                        </p>
+                                        
+                                        <!-- Progress Bar -->
+                                        <div class="mb-2">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <small class="text-muted">Progress</small>
+                                                <small class="text-muted">{{ "%.1f"|format(enrollment.progress_percentage) }}%</small>
+                                            </div>
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar" role="progressbar" 
+                                                     style="width: {{ enrollment.progress_percentage }}%"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-{{ 'success' if enrollment.completed_at else 'primary' }}">
+                                                {{ 'Completed' if enrollment.completed_at else 'In Progress' }}
+                                            </span>
+                                            <a href="{{ url_for('course_detail', course_id=enrollment.course_id) }}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                Continue
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                            <h6 class="text-muted">No courses enrolled yet</h6>
+                            <p class="text-muted">Start your learning journey by enrolling in a course</p>
+                            <a href="{{ url_for('courses') }}" class="btn btn-primary">
+                                <i class="fas fa-search me-2"></i>Browse Courses
+                            </a>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Pending Requests Section -->
+                    {% if pending_requests %}
+                        <div class="mt-4 pt-3 border-top">
+                            <h6 class="text-warning mb-3">
+                                <i class="fas fa-clock me-2"></i>Pending Approval ({{ pending_requests|length }})
+                            </h6>
+                            <div class="row">
+                                {% for request in pending_requests %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card border-warning">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h6 class="card-title mb-0">{{ request.title }}</h6>
+                                                <span class="badge bg-warning text-dark">Pending</span>
+                                            </div>
+                                            <p class="card-text text-muted small">
+                                                {{ request.description[:80] }}...
+                                            </p>
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar me-1"></i>Requested {{ request.enrolled_at[:10] }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div class="alert alert-info mt-3">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Waiting for approval:</strong> Your enrollment requests are being reviewed by the administrator. 
+                                You'll receive access once approved.
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Courses -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-plus-circle me-2"></i>Available Courses
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if available_courses %}
+                        {% for course in available_courses %}
+                        <div class="border-bottom pb-3 mb-3">
+                            <h6 class="mb-1">
+                                <a href="{{ url_for('course_detail', course_id=course.id) }}" 
+                                   class="text-decoration-none">
+                                    {{ course.title }}
+                                </a>
+                            </h6>
+                            <p class="text-muted small mb-2">
+                                {{ course.description[:80] }}...
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-light text-dark">{{ course.level.title() }}</span>
+                                <a href="{{ url_for('course_detail', course_id=course.id) }}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    View
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        <div class="text-center">
+                            <a href="{{ url_for('courses') }}" class="btn btn-sm btn-primary">
+                                View All Courses
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-graduation-cap fa-2x text-muted mb-2"></i>
+                            <p class="text-muted small mb-0">No courses available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

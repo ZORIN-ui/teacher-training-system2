@@ -1,0 +1,246 @@
+{% extends "base_simple.html" %}
+
+{% block title %}Create Module - {{ course.title }} - Teacher Training System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-plus me-2 text-primary"></i>
+                        Create New Module
+                    </h4>
+                    <p class="text-muted mb-0 mt-1">Course: <strong>{{ course.title }}</strong></p>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="title" class="form-label">
+                                        <i class="fas fa-heading me-1"></i>Module Title *
+                                    </label>
+                                    <input type="text" class="form-control" id="title" name="title" required
+                                           placeholder="Enter module title (e.g., Introduction to Classroom Management)">
+                                    <div class="form-text">Choose a clear, descriptive title that reflects the module content</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="duration_minutes" class="form-label">
+                                        <i class="fas fa-clock me-1"></i>Duration (Minutes)
+                                    </label>
+                                    <input type="number" class="form-control" id="duration_minutes" name="duration_minutes" 
+                                           min="0" max="300" placeholder="30">
+                                    <div class="form-text">Estimated completion time</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="lesson_type" class="form-label">
+                                <i class="fas fa-layer-group me-1"></i>Module Type
+                            </label>
+                            <select class="form-select" id="lesson_type" name="lesson_type">
+                                <option value="text">Text Content</option>
+                                <option value="video">Video Lesson</option>
+                                <option value="audio">Audio Content</option>
+                                <option value="presentation">Presentation</option>
+                                <option value="interactive">Interactive Content</option>
+                                <option value="quiz">Quiz/Assessment</option>
+                                <option value="assignment">Assignment</option>
+                                <option value="discussion">Discussion Forum</option>
+                            </select>
+                            <div class="form-text">Select the primary format for this module</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="objectives" class="form-label">
+                                <i class="fas fa-bullseye me-1"></i>Learning Objectives
+                            </label>
+                            <textarea class="form-control" id="objectives" name="objectives" rows="3"
+                                      placeholder="• Students will be able to...&#10;• Students will understand...&#10;• Students will demonstrate..."></textarea>
+                            <div class="form-text">List what students will learn or be able to do after completing this module</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="content" class="form-label">
+                                <i class="fas fa-align-left me-1"></i>Module Content *
+                            </label>
+                            <textarea class="form-control" id="content" name="content" rows="15" required
+                                      placeholder="Enter the main content for this module...
+
+You can structure your content with:
+
+## Introduction
+Brief overview of what this module covers
+
+## Main Content
+Detailed explanations, examples, and key concepts
+
+## Key Points
+• Important takeaway #1
+• Important takeaway #2
+• Important takeaway #3
+
+## Practical Application
+How students can apply what they've learned
+
+## Summary
+Recap of the main concepts covered"></textarea>
+                            <div class="form-text">
+                                Provide comprehensive content for this module. Use headings, bullet points, and examples to make it engaging.
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="resources" class="form-label">
+                                <i class="fas fa-link me-1"></i>Additional Resources
+                            </label>
+                            <textarea class="form-control" id="resources" name="resources" rows="4"
+                                      placeholder="• Link to relevant articles or websites&#10;• Recommended books or publications&#10;• Downloadable materials or templates&#10;• Related videos or multimedia content"></textarea>
+                            <div class="form-text">Optional: Add links, references, or additional materials for further learning</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('course_modules', course_id=course.id) }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Back to Modules
+                            </a>
+                            <div>
+                                <button type="button" class="btn btn-outline-info me-2" onclick="previewModule()">
+                                    <i class="fas fa-eye me-1"></i>Preview
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>Create Module
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Module Creation Guidelines -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-lightbulb me-2 text-warning"></i>
+                        Module Creation Guidelines
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-check-circle text-success me-1"></i>Content Structure</h6>
+                            <ul class="list-unstyled small">
+                                <li><i class="fas fa-chevron-right text-primary me-2"></i>Start with clear learning objectives</li>
+                                <li><i class="fas fa-chevron-right text-primary me-2"></i>Use headings to organize content</li>
+                                <li><i class="fas fa-chevron-right text-primary me-2"></i>Include practical examples</li>
+                                <li><i class="fas fa-chevron-right text-primary me-2"></i>End with a summary</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-users text-info me-1"></i>Engagement Tips</h6>
+                            <ul class="list-unstyled small">
+                                <li><i class="fas fa-chevron-right text-primary me-2"></i>Use interactive elements</li>
+                                <li><i class="fas fa-chevron-right text-primary me-2"></i>Include reflection questions</li>
+                                <li><i class="fas fa-chevron-right text-primary me-2"></i>Provide real-world scenarios</li>
+                                <li><i class="fas fa-chevron-right text-primary me-2"></i>Add multimedia when possible</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-clock text-warning me-1"></i>Duration Guidelines</h6>
+                            <ul class="list-unstyled small">
+                                <li><i class="fas fa-chevron-right text-primary me-2"></i>Text content: 5-15 minutes</li>
+                                <li><i class="fas fa-chevron-right text-primary me-2"></i>Video lessons: 10-30 minutes</li>
+                                <li><i class="fas fa-chevron-right text-primary me-2"></i>Interactive content: 15-45 minutes</li>
+                                <li><i class="fas fa-chevron-right text-primary me-2"></i>Quizzes: 5-20 minutes</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Pro Tip:</strong> Modules are automatically ordered based on creation time. 
+                        You can reorder them later in the module management interface.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewModalLabel">Module Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="previewContent">
+                <!-- Preview content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function previewModule() {
+    const title = document.getElementById('title').value || 'Untitled Module';
+    const content = document.getElementById('content').value || 'No content provided';
+    const objectives = document.getElementById('objectives').value;
+    const resources = document.getElementById('resources').value;
+    const duration = document.getElementById('duration_minutes').value;
+    const type = document.getElementById('lesson_type').value;
+    
+    let previewHtml = `
+        <div class="module-preview">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4>${title}</h4>
+                <div>
+                    <span class="badge bg-secondary me-2">${type.charAt(0).toUpperCase() + type.slice(1)}</span>
+                    ${duration ? `<span class="badge bg-info">${duration} minutes</span>` : ''}
+                </div>
+            </div>
+    `;
+    
+    if (objectives) {
+        previewHtml += `
+            <div class="mb-4">
+                <h6><i class="fas fa-bullseye me-2 text-primary"></i>Learning Objectives</h6>
+                <div class="bg-light p-3 rounded">
+                    ${objectives.replace(/\n/g, '<br>')}
+                </div>
+            </div>
+        `;
+    }
+    
+    previewHtml += `
+        <div class="mb-4">
+            <h6><i class="fas fa-book-open me-2 text-primary"></i>Content</h6>
+            <div class="content-preview">
+                ${content.replace(/\n/g, '<br>')}
+            </div>
+        </div>
+    `;
+    
+    if (resources) {
+        previewHtml += `
+            <div class="mb-4">
+                <h6><i class="fas fa-link me-2 text-primary"></i>Additional Resources</h6>
+                <div class="bg-light p-3 rounded">
+                    ${resources.replace(/\n/g, '<br>')}
+                </div>
+            </div>
+        `;
+    }
+    
+    previewHtml += '</div>';
+    
+    document.getElementById('previewContent').innerHTML = previewHtml;
+    new bootstrap.Modal(document.getElementById('previewModal')).show();
+}
+</script>
+{% endblock %}

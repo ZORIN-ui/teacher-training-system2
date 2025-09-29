@@ -1,0 +1,541 @@
+{% extends "base_simple.html" %}
+
+{% block title %}Student Registration - Teacher Training System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <div class="text-center">
+                        <h3><i class="fas fa-user-graduate me-2"></i>Student Registration Form</h3>
+                        <p class="mb-0">Complete your registration to join our professional development programs</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="registrationForm">
+                        <!-- Progress Indicator -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 0%" id="progressBar"></div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <small class="text-muted">Personal Info</small>
+                                    <small class="text-muted">Contact Details</small>
+                                    <small class="text-muted">Education & Experience</small>
+                                    <small class="text-muted">Course Selection</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 1: Personal Information -->
+                        <div class="form-step active" id="step1">
+                            <h5 class="mb-3"><i class="fas fa-user me-2"></i>Personal Information</h5>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="first_name" class="form-label">First Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name if user }}" required>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="last_name" class="form-label">Last Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name if user }}" required>
+                                </div>
+                                {% if not internal %}
+                                <div class="col-md-4 mb-3">
+                                    <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="username" name="username" required>
+                                    <div class="form-text">This will be your login username</div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="row">
+                                {% if not internal %}
+                                <div class="col-md-6 mb-3">
+                                    <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                                {% endif %}
+                                <div class="col-md-3 mb-3">
+                                    <label for="date_of_birth" class="form-label">Date of Birth</label>
+                                    <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{{ user.date_of_birth if user }}">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="gender" class="form-label">Gender</label>
+                                    <select class="form-select" id="gender" name="gender">
+                                        <option value="">Select Gender</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
+                                        <option value="prefer_not_to_say">Prefer not to say</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="id_number" class="form-label">National ID Number</label>
+                                    <input type="text" class="form-control" id="id_number" name="id_number" value="{{ user.id_number if user }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="passport_number" class="form-label">Passport Number (if applicable)</label>
+                                    <input type="text" class="form-control" id="passport_number" name="passport_number" value="{{ user.passport_number if user }}">
+                                </div>
+                            </div>
+                            {% if not internal %}
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                                    <input type="password" class="form-control" id="password" name="password" required>
+                                    <div class="form-text">Minimum 8 characters</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="confirm_password" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Step 2: Contact Information -->
+                        <div class="form-step" id="step2">
+                            <h5 class="mb-3"><i class="fas fa-address-card me-2"></i>Contact Information</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="phone_number" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                                    <input type="tel" class="form-control" id="phone_number" name="phone_number" value="{{ user.phone_number if user }}" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="nationality" class="form-label">Nationality</label>
+                                    <input type="text" class="form-control" id="nationality" name="nationality" value="{{ user.nationality if user else 'Kenyan' }}">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12 mb-3">
+                                    <label for="address" class="form-label">Physical Address</label>
+                                    <textarea class="form-control" id="address" name="address" rows="2">{{ user.address if user }}</textarea>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="city" class="form-label">City/Town</label>
+                                    <input type="text" class="form-control" id="city" name="city" value="{{ user.city if user }}">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="state_province" class="form-label">County/State</label>
+                                    <input type="text" class="form-control" id="state_province" name="state_province" value="{{ user.state_province if user }}">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="postal_code" class="form-label">Postal Code</label>
+                                    <input type="text" class="form-control" id="postal_code" name="postal_code" value="{{ user.postal_code if user }}">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="country" class="form-label">Country</label>
+                                    <select class="form-select" id="country" name="country">
+                                        <option value="Kenya" selected>Kenya</option>
+                                        <option value="Uganda">Uganda</option>
+                                        <option value="Tanzania">Tanzania</option>
+                                        <option value="Rwanda">Rwanda</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <h6 class="mt-4 mb-3"><i class="fas fa-phone-alt me-2"></i>Emergency Contact</h6>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="emergency_contact_name" class="form-label">Emergency Contact Name</label>
+                                    <input type="text" class="form-control" id="emergency_contact_name" name="emergency_contact_name" value="{{ user.emergency_contact_name if user }}">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="emergency_contact_phone" class="form-label">Emergency Contact Phone</label>
+                                    <input type="tel" class="form-control" id="emergency_contact_phone" name="emergency_contact_phone" value="{{ user.emergency_contact_phone if user }}">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="emergency_contact_relationship" class="form-label">Relationship</label>
+                                    <select class="form-select" id="emergency_contact_relationship" name="emergency_contact_relationship">
+                                        <option value="">Select Relationship</option>
+                                        <option value="parent">Parent</option>
+                                        <option value="spouse">Spouse</option>
+                                        <option value="sibling">Sibling</option>
+                                        <option value="friend">Friend</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Education & Professional Experience -->
+                        <div class="form-step" id="step3">
+                            <h5 class="mb-3"><i class="fas fa-graduation-cap me-2"></i>Education & Professional Experience</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="highest_education" class="form-label">Highest Level of Education</label>
+                                    <select class="form-select" id="highest_education" name="highest_education">
+                                        <option value="">Select Education Level</option>
+                                        <option value="certificate">Certificate</option>
+                                        <option value="diploma">Diploma</option>
+                                        <option value="bachelor">Bachelor's Degree</option>
+                                        <option value="master">Master's Degree</option>
+                                        <option value="phd">PhD/Doctorate</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="graduation_year" class="form-label">Year of Graduation</label>
+                                    <input type="number" class="form-control" id="graduation_year" name="graduation_year" min="1950" max="2030" value="{{ user.graduation_year if user }}">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12 mb-3">
+                                    <label for="institution_name" class="form-label">Institution Name</label>
+                                    <input type="text" class="form-control" id="institution_name" name="institution_name" value="{{ user.institution_name if user }}">
+                                </div>
+                            </div>
+                            
+                            <h6 class="mt-4 mb-3"><i class="fas fa-briefcase me-2"></i>Professional Information</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="current_position" class="form-label">Current Position/Job Title</label>
+                                    <input type="text" class="form-control" id="current_position" name="current_position" value="{{ user.current_position if user }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="organization" class="form-label">Current Organization/School</label>
+                                    <input type="text" class="form-control" id="organization" name="organization" value="{{ user.organization if user }}">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="years_of_experience" class="form-label">Years of Professional Experience</label>
+                                    <select class="form-select" id="years_of_experience" name="years_of_experience">
+                                        <option value="">Select Experience</option>
+                                        <option value="0">Less than 1 year</option>
+                                        <option value="1">1-2 years</option>
+                                        <option value="3">3-5 years</option>
+                                        <option value="6">6-10 years</option>
+                                        <option value="11">11-15 years</option>
+                                        <option value="16">16+ years</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="department" class="form-label">Department/Subject Area</label>
+                                    <input type="text" class="form-control" id="department" name="department" value="{{ user.department if user }}">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12 mb-3">
+                                    <label for="professional_experience" class="form-label">Brief Description of Professional Experience</label>
+                                    <textarea class="form-control" id="professional_experience" name="professional_experience" rows="3">{{ user.professional_experience if user }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Course Selection & Motivation -->
+                        <div class="form-step" id="step4">
+                            <h5 class="mb-3"><i class="fas fa-book me-2"></i>Course Selection & Motivation</h5>
+                            <div class="row">
+                                <div class="col-12 mb-4">
+                                    <label for="preferred_course_id" class="form-label">Select Your Preferred Course <span class="text-danger">*</span></label>
+                                    <div class="row" id="courseSelection">
+                                        <!-- Course options will be loaded here -->
+                                    </div>
+                                    <input type="hidden" id="preferred_course_id" name="preferred_course_id" value="{{ user.preferred_course_id if user }}" required>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12 mb-3">
+                                    <label for="motivation" class="form-label">Why do you want to take this course? What are your learning objectives?</label>
+                                    <textarea class="form-control" id="motivation" name="motivation" rows="4" placeholder="Please describe your motivation for taking this course and what you hope to achieve...">{{ user.motivation if user }}</textarea>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="how_did_you_hear" class="form-label">How did you hear about us?</label>
+                                    <select class="form-select" id="how_did_you_hear" name="how_did_you_hear">
+                                        <option value="">Select an option</option>
+                                        <option value="social_media">Social Media</option>
+                                        <option value="website">Website/Google Search</option>
+                                        <option value="friend_colleague">Friend/Colleague</option>
+                                        <option value="advertisement">Advertisement</option>
+                                        <option value="professional_network">Professional Network</option>
+                                        <option value="educational_institution">Educational Institution</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Buttons -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="button" class="btn btn-secondary" id="prevBtn" onclick="changeStep(-1)" style="display: none;">
+                                <i class="fas fa-arrow-left me-1"></i>Previous
+                            </button>
+                            <button type="button" class="btn btn-primary" id="nextBtn" onclick="changeStep(1)">
+                                Next<i class="fas fa-arrow-right ms-1"></i>
+                            </button>
+                            <button type="submit" class="btn btn-success" id="submitBtn" style="display: none;">
+                                <i class="fas fa-check me-1"></i>Complete Registration
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-step {
+    display: none;
+}
+
+.form-step.active {
+    display: block;
+}
+
+.course-card {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.course-card:hover {
+    border-color: #007bff;
+    box-shadow: 0 4px 8px rgba(0,123,255,0.1);
+}
+
+.course-card.selected {
+    border-color: #007bff;
+    background-color: #f8f9ff;
+    box-shadow: 0 4px 12px rgba(0,123,255,0.15);
+}
+
+.course-card .course-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+.course-card .course-description {
+    color: #6c757d;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.course-card .course-meta {
+    margin-top: 10px;
+    font-size: 0.85rem;
+}
+
+.progress {
+    height: 8px;
+    border-radius: 4px;
+}
+
+.form-label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0,0,0,0.125);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentStep = 1;
+const totalSteps = 4;
+
+// Load available courses
+document.addEventListener('DOMContentLoaded', function() {
+    loadCourses();
+});
+
+function loadCourses() {
+    fetch('/api/courses')
+        .then(response => response.json())
+        .then(courses => {
+            const courseSelection = document.getElementById('courseSelection');
+            courseSelection.innerHTML = '';
+            
+            courses.forEach(course => {
+                const courseCard = document.createElement('div');
+                courseCard.className = 'col-md-6 mb-3';
+                courseCard.innerHTML = `
+                    <div class="course-card" onclick="selectCourse(${course.id}, this)">
+                        <div class="course-title">${course.title}</div>
+                        <div class="course-description">${course.description}</div>
+                        <div class="course-meta">
+                            <span class="badge bg-secondary me-2">${course.category}</span>
+                            <span class="badge bg-info me-2">${course.level}</span>
+                            <span class="text-muted">${course.duration_hours} hours</span>
+                        </div>
+                    </div>
+                `;
+                courseSelection.appendChild(courseCard);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading courses:', error);
+        });
+}
+
+function selectCourse(courseId, element) {
+    // Remove selection from all course cards
+    document.querySelectorAll('.course-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    // Add selection to clicked card
+    element.classList.add('selected');
+    
+    // Set the hidden input value
+    document.getElementById('preferred_course_id').value = courseId;
+}
+
+function changeStep(direction) {
+    const currentStepElement = document.getElementById(`step${currentStep}`);
+    
+    if (direction === 1) {
+        // Validate current step before proceeding
+        if (!validateStep(currentStep)) {
+            return;
+        }
+        
+        if (currentStep < totalSteps) {
+            currentStepElement.classList.remove('active');
+            currentStep++;
+            document.getElementById(`step${currentStep}`).classList.add('active');
+        }
+    } else {
+        if (currentStep > 1) {
+            currentStepElement.classList.remove('active');
+            currentStep--;
+            document.getElementById(`step${currentStep}`).classList.add('active');
+        }
+    }
+    
+    updateButtons();
+    updateProgress();
+}
+
+function validateStep(step) {
+    const stepElement = document.getElementById(`step${step}`);
+    const requiredFields = stepElement.querySelectorAll('[required]');
+    let isValid = true;
+    
+    requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+            field.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            field.classList.remove('is-invalid');
+        }
+    });
+    
+    // Special validation for step 1 (password confirmation)
+    if (step === 1) {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+        
+        if (password !== confirmPassword) {
+            document.getElementById('confirm_password').classList.add('is-invalid');
+            showAlert('Passwords do not match', 'error');
+            isValid = false;
+        }
+    }
+    
+    // Special validation for step 4 (course selection)
+    if (step === 4) {
+        const courseId = document.getElementById('preferred_course_id').value;
+        if (!courseId) {
+            showAlert('Please select a course', 'error');
+            isValid = false;
+        }
+    }
+    
+    if (!isValid) {
+        showAlert('Please fill in all required fields', 'error');
+    }
+    
+    return isValid;
+}
+
+function updateButtons() {
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    prevBtn.style.display = currentStep === 1 ? 'none' : 'block';
+    nextBtn.style.display = currentStep === totalSteps ? 'none' : 'block';
+    submitBtn.style.display = currentStep === totalSteps ? 'block' : 'none';
+}
+
+function updateProgress() {
+    const progress = (currentStep / totalSteps) * 100;
+    document.getElementById('progressBar').style.width = progress + '%';
+}
+
+function showAlert(message, type) {
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    const alertHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    const container = document.querySelector('.container-fluid');
+    container.insertAdjacentHTML('afterbegin', alertHtml);
+    
+    setTimeout(() => {
+        const alert = container.querySelector('.alert');
+        if (alert) {
+            alert.remove();
+        }
+    }, 5000);
+}
+
+// Auto-generate full name from first and last name
+document.getElementById('first_name').addEventListener('input', updateFullName);
+document.getElementById('last_name').addEventListener('input', updateFullName);
+
+function updateFullName() {
+    const firstName = document.getElementById('first_name').value;
+    const lastName = document.getElementById('last_name').value;
+    // This will be used in the backend to set full_name
+}
+
+// Form submission
+document.getElementById('registrationForm').addEventListener('submit', function(e) {
+    if (!validateStep(currentStep)) {
+        e.preventDefault();
+        return;
+    }
+    
+    // Show loading state
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing...';
+    submitBtn.disabled = true;
+});
+</script>
+{% endblock %}

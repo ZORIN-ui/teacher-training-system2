@@ -1,0 +1,191 @@
+{% extends "base_simple.html" %}
+
+{% block title %}Manage Lessons - {{ course.title }} - Teacher Training System{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h2 mb-0">
+                        <i class="fas fa-list me-2 text-primary"></i>
+                        Manage Lessons
+                    </h1>
+                    <p class="text-muted mb-0">Course: <strong>{{ course.title }}</strong></p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('create_lesson', course_id=course.id) }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Add Lesson
+                    </a>
+                    <a href="{{ url_for('edit_course', course_id=course.id) }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-edit me-1"></i>Edit Course
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-book-open me-2"></i>Course Lessons
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if lessons %}
+                        <div class="lesson-list">
+                            {% for lesson in lessons %}
+                            <div class="lesson-item border rounded p-3 mb-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="badge bg-primary me-2">{{ lesson.lesson_order }}</span>
+                                            <h6 class="mb-0">{{ lesson.title }}</h6>
+                                        </div>
+                                        <p class="text-muted mb-2">{{ lesson.content[:200] }}{% if lesson.content|length > 200 %}...{% endif %}</p>
+                                        <div class="d-flex align-items-center text-sm">
+                                            <span class="badge bg-secondary me-2">{{ lesson.lesson_type.title() }}</span>
+                                            {% if lesson.duration_minutes %}
+                                                <span class="text-muted me-3">
+                                                    <i class="fas fa-clock me-1"></i>{{ lesson.duration_minutes }} min
+                                                </span>
+                                            {% endif %}
+                                            <span class="text-muted">
+                                                <i class="fas fa-calendar me-1"></i>{{ lesson.created_at[:10] }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="btn-group btn-group-sm ms-3">
+                                        <button class="btn btn-outline-primary" onclick="viewLesson({{ lesson.id }})" title="View Lesson">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-warning" onclick="editLesson({{ lesson.id }})" title="Edit Lesson">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger" onclick="deleteLesson({{ lesson.id }}, '{{ lesson.title }}')" title="Delete Lesson">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-book-open fa-4x text-muted mb-4"></i>
+                            <h4 class="text-muted mb-3">No Lessons Created Yet</h4>
+                            <p class="text-muted mb-4">Start building your course content by adding your first lesson.</p>
+                            <a href="{{ url_for('create_lesson', course_id=course.id) }}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-plus me-2"></i>Add Your First Lesson
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Course Overview
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Course Title:</strong><br>
+                        {{ course.title }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>Category:</strong><br>
+                        <span class="badge bg-secondary">{{ course.category }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Level:</strong><br>
+                        <span class="badge bg-info">{{ course.level.title() }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Status:</strong><br>
+                        {% if course.is_published %}
+                            <span class="badge bg-success">Published</span>
+                        {% else %}
+                            <span class="badge bg-warning">Draft</span>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <strong>Total Lessons:</strong><br>
+                        {{ lessons|length }}
+                    </div>
+                    {% if course.duration_hours %}
+                    <div class="mb-3">
+                        <strong>Duration:</strong><br>
+                        {{ course.duration_hours }} hours
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <div class="d-grid">
+                        <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-outline-primary">
+                            <i class="fas fa-eye me-1"></i>Preview Course
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-lightbulb me-2 text-warning"></i>Tips
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled small">
+                        <li><i class="fas fa-check text-success me-2"></i>Order lessons logically</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Use clear, descriptive titles</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Set realistic durations</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Include engaging content</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lesson View Modal -->
+<div class="modal fade" id="lessonModal" tabindex="-1" aria-labelledby="lessonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="lessonModalLabel">Lesson Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="lessonContent">
+                <!-- Lesson content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewLesson(lessonId) {
+    // For now, just show a placeholder. In a full implementation, you'd load lesson content via AJAX
+    document.getElementById('lessonContent').innerHTML = '<p>Lesson preview functionality would be implemented here.</p>';
+    new bootstrap.Modal(document.getElementById('lessonModal')).show();
+}
+
+function editLesson(lessonId) {
+    // Redirect to edit lesson page (to be implemented)
+    alert('Edit lesson functionality would redirect to edit page for lesson ' + lessonId);
+}
+
+function deleteLesson(lessonId, lessonTitle) {
+    if (confirm(`Are you sure you want to delete the lesson "${lessonTitle}"?`)) {
+        // In a full implementation, this would make an AJAX call to delete the lesson
+        alert('Delete lesson functionality would be implemented here for lesson ' + lessonId);
+    }
+}
+</script>
+{% endblock %}

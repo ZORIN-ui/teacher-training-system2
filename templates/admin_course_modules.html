@@ -1,0 +1,196 @@
+{% extends "base_simple.html" %}
+
+{% block title %}Course Modules - {{ course.title }} - Teacher Training System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-book-open me-2"></i>Course Modules</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('admin_courses') }}">Courses</a></li>
+                            <li class="breadcrumb-item active">{{ course.title }}</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <a href="{{ url_for('admin_create_module', course_id=course.id) }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Add Module
+                    </a>
+                    <a href="{{ url_for('admin_courses') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Courses
+                    </a>
+                </div>
+            </div>
+
+            <!-- Course Info Card -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h4 class="card-title">{{ course.title }}</h4>
+                            <p class="card-text text-muted">{{ course.description }}</p>
+                            <div class="d-flex gap-3">
+                                <span class="badge bg-secondary">{{ course.category }}</span>
+                                <span class="badge bg-info">{{ course.level }}</span>
+                                <span class="text-muted"><i class="fas fa-clock me-1"></i>{{ course.duration_hours }} hours</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="row text-center">
+                                <div class="col-6">
+                                    <h5 class="text-primary">{{ modules|length }}</h5>
+                                    <small class="text-muted">Modules</small>
+                                </div>
+                                <div class="col-6">
+                                    <h5 class="text-success">{{ course.enrollment_count }}</h5>
+                                    <small class="text-muted">Students</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modules List -->
+            {% if modules %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>Course Modules ({{ modules|length }})</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="5%">#</th>
+                                    <th width="30%">Title</th>
+                                    <th width="15%">Type</th>
+                                    <th width="10%">Duration</th>
+                                    <th width="20%">Content Preview</th>
+                                    <th width="10%">Created</th>
+                                    <th width="10%">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for module in modules %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-primary">{{ module.lesson_order }}</span>
+                                    </td>
+                                    <td>
+                                        <strong>{{ module.title }}</strong>
+                                        {% if module.learning_objectives %}
+                                        <br><small class="text-muted">{{ module.learning_objectives[:50] }}{% if module.learning_objectives|length > 50 %}...{% endif %}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% set type_icons = {
+                                            'text': 'fas fa-file-alt',
+                                            'video': 'fas fa-video',
+                                            'audio': 'fas fa-volume-up',
+                                            'presentation': 'fas fa-presentation',
+                                            'interactive': 'fas fa-mouse-pointer',
+                                            'quiz': 'fas fa-question-circle',
+                                            'assignment': 'fas fa-tasks',
+                                            'discussion': 'fas fa-comments'
+                                        } %}
+                                        <i class="{{ type_icons.get(module.lesson_type, 'fas fa-file') }} me-1"></i>
+                                        {{ module.lesson_type.title() }}
+                                    </td>
+                                    <td>
+                                        {% if module.duration_minutes %}
+                                        <span class="text-muted">{{ module.duration_minutes }} min</span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ module.content[:80] }}{% if module.content|length > 80 %}...{% endif %}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ module.created_at.split(' ')[0] if module.created_at else 'N/A' }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{{ url_for('student_view_module', module_id=module.id) }}" 
+                                               class="btn btn-outline-primary" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('admin_edit_module', module_id=module.id) }}" 
+                                               class="btn btn-outline-warning" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-danger" 
+                                                    onclick="confirmDelete({{ module.id }}, '{{ module.title }}')" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <!-- Empty State -->
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No Modules Yet</h4>
+                    <p class="text-muted mb-4">This course doesn't have any modules yet. Create the first module to get started.</p>
+                    <a href="{{ url_for('admin_create_module', course_id=course.id) }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Create First Module
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the module "<span id="moduleTitle"></span>"?</p>
+                <p class="text-danger"><strong>Warning:</strong> This action cannot be undone and will also delete all student progress for this module.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Delete Module</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(moduleId, moduleTitle) {
+    document.getElementById('moduleTitle').textContent = moduleTitle;
+    document.getElementById('deleteForm').action = `/admin/modules/${moduleId}/delete`;
+    
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

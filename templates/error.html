@@ -1,0 +1,53 @@
+{% extends "base_simple.html" %}
+
+{% block title %}Error {{ error_code }} - Teacher Training System{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 text-center">
+            <div class="card shadow-lg">
+                <div class="card-body p-5">
+                    <div class="mb-4">
+                        {% if error_code == 404 %}
+                            <i class="fas fa-search fa-4x text-warning mb-3"></i>
+                            <h1 class="display-4 text-warning">404</h1>
+                            <h3 class="mb-3">Page Not Found</h3>
+                        {% elif error_code == 403 %}
+                            <i class="fas fa-lock fa-4x text-danger mb-3"></i>
+                            <h1 class="display-4 text-danger">403</h1>
+                            <h3 class="mb-3">Access Forbidden</h3>
+                        {% elif error_code == 500 %}
+                            <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
+                            <h1 class="display-4 text-danger">500</h1>
+                            <h3 class="mb-3">Server Error</h3>
+                        {% else %}
+                            <i class="fas fa-exclamation-circle fa-4x text-muted mb-3"></i>
+                            <h1 class="display-4 text-muted">{{ error_code }}</h1>
+                            <h3 class="mb-3">Something went wrong</h3>
+                        {% endif %}
+                    </div>
+                    
+                    <p class="text-muted mb-4">
+                        {{ error_message or "We're sorry, but something went wrong." }}
+                    </p>
+                    
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Go Back
+                        </a>
+                        <a href="{{ url_for('user.index') }}" class="btn btn-primary">
+                            <i class="fas fa-home me-2"></i>Go Home
+                        </a>
+                        {% if session.user_id %}
+                            <a href="{{ url_for('user.dashboard') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

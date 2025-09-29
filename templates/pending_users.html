@@ -1,0 +1,247 @@
+{% extends "base_simple.html" %}
+
+{% block title %}Pending User Registrations - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Admin Dashboard</a></li>
+                    <li class="breadcrumb-item active">Pending User Registrations</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-user-clock me-2"></i>Pending User Registrations</h2>
+                    <p class="text-muted">Review and approve new user registration requests</p>
+                </div>
+                
+                <!-- Statistics Cards -->
+                <div class="d-flex gap-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body text-center py-2">
+                            <h5 class="mb-0">{{ user_stats.pending_users }}</h5>
+                            <small>Pending</small>
+                        </div>
+                    </div>
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center py-2">
+                            <h5 class="mb-0">{{ user_stats.approved_users }}</h5>
+                            <small>Approved</small>
+                        </div>
+                    </div>
+                    <div class="card bg-danger text-white">
+                        <div class="card-body text-center py-2">
+                            <h5 class="mb-0">{{ user_stats.rejected_users }}</h5>
+                            <small>Rejected</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if pending %}
+    <!-- Bulk Actions -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body py-2">
+                    <form id="bulkForm" method="POST" action="{{ url_for('bulk_approve_users') }}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="selectAll">
+                                <label class="form-check-label" for="selectAll">
+                                    Select All
+                                </label>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-sm" id="bulkApproveBtn" disabled>
+                                <i class="fas fa-check me-1"></i>Approve Selected
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Users List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-users me-2"></i>Pending Registrations
+                        <span class="badge bg-warning ms-2">{{ pending|length }}</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="50">
+                                        <input type="checkbox" id="selectAllTable" class="form-check-input">
+                                    </th>
+                                    <th>User Details</th>
+                                    <th>Department</th>
+                                    <th>Registration Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in pending %}
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" name="user_ids" value="{{ user.id }}" 
+                                               class="form-check-input user-checkbox" form="bulkForm">
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle bg-primary text-white me-3">
+                                                {{ user.full_name[0].upper() }}
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">{{ user.full_name }}</h6>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-envelope me-1"></i>{{ user.email }}
+                                                </small>
+                                                <br>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-user me-1"></i>{{ user.username }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if user.department %}
+                                            <span class="badge bg-secondary">{{ user.department }}</span>
+                                        {% else %}
+                                            <span class="text-muted">Not specified</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            {{ user.created_at[:10] }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <form method="POST" action="{{ url_for('approve_user', user_id=user.id) }}" 
+                                                  class="d-inline" onsubmit="return confirm('Approve this user registration?')">
+                                                <button type="submit" class="btn btn-success btn-sm">
+                                                    <i class="fas fa-check me-1"></i>Approve
+                                                </button>
+                                            </form>
+                                            <form method="POST" action="{{ url_for('reject_user', user_id=user.id) }}" 
+                                                  class="d-inline" onsubmit="return confirm('Reject this user registration?')">
+                                                <button type="submit" class="btn btn-danger btn-sm">
+                                                    <i class="fas fa-times me-1"></i>Reject
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- No Pending Users -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-user-check fa-4x text-success mb-3"></i>
+                    <h4>No Pending Registrations</h4>
+                    <p class="text-muted">All user registrations have been reviewed.</p>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const selectAllTableCheckbox = document.getElementById('selectAllTable');
+    const userCheckboxes = document.querySelectorAll('.user-checkbox');
+    const bulkApproveBtn = document.getElementById('bulkApproveBtn');
+
+    // Sync select all checkboxes
+    function syncSelectAll() {
+        const checkedCount = document.querySelectorAll('.user-checkbox:checked').length;
+        const allChecked = checkedCount === userCheckboxes.length && userCheckboxes.length > 0;
+        
+        selectAllCheckbox.checked = allChecked;
+        selectAllTableCheckbox.checked = allChecked;
+        bulkApproveBtn.disabled = checkedCount === 0;
+    }
+
+    // Handle select all
+    function handleSelectAll(checked) {
+        userCheckboxes.forEach(checkbox => {
+            checkbox.checked = checked;
+        });
+        syncSelectAll();
+    }
+
+    // Event listeners
+    selectAllCheckbox.addEventListener('change', function() {
+        handleSelectAll(this.checked);
+    });
+
+    selectAllTableCheckbox.addEventListener('change', function() {
+        handleSelectAll(this.checked);
+    });
+
+    userCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', syncSelectAll);
+    });
+
+    // Bulk approve confirmation
+    document.getElementById('bulkForm').addEventListener('submit', function(e) {
+        const checkedCount = document.querySelectorAll('.user-checkbox:checked').length;
+        if (checkedCount === 0) {
+            e.preventDefault();
+            alert('Please select at least one user to approve.');
+            return false;
+        }
+        
+        if (!confirm(`Approve ${checkedCount} user registration(s)?`)) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    // Initial sync
+    syncSelectAll();
+});
+</script>
+{% endblock %}

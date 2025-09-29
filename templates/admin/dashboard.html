@@ -1,0 +1,493 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Teacher Training System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-2">
+                        <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+                    </h1>
+                    <p class="text-muted">System overview and management tools</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-users me-1"></i>Manage Users
+                    </a>
+                    <a href="{{ url_for('admin_courses') }}" class="btn btn-outline-success">
+                        <i class="fas fa-book me-1"></i>Manage Courses
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Users
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_users }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Active Users
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_users }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Total Courses
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_courses }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-book fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Total Enrollments
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_enrollments }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-graduation-cap fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Enrollments -->
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Enrollments</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                            aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">Actions:</div>
+                            <a class="dropdown-item" href="{{ url_for('admin_users') }}">View All Users</a>
+                            <a class="dropdown-item" href="{{ url_for('admin_courses') }}">View All Courses</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if recent_enrollments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Course</th>
+                                        <th>Enrolled Date</th>
+                                        <th>Progress</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for enrollment in recent_enrollments %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar me-2">
+                                                    {% if enrollment.user.profile_picture %}
+                                                        <img src="{{ url_for('static', filename='uploads/' + enrollment.user.profile_picture) }}" 
+                                                             class="rounded-circle" width="32" height="32">
+                                                    {% else %}
+                                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                                             style="width: 32px; height: 32px; font-size: 12px;">
+                                                            {{ enrollment.user.full_name[:2].upper() }}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold">{{ enrollment.user.full_name }}</div>
+                                                    <small class="text-muted">{{ enrollment.user.email }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <div class="fw-bold">{{ enrollment.course.title }}</div>
+                                                <small class="text-muted">{{ enrollment.course.category }}</small>
+                                            </div>
+                                        </td>
+                                        <td>{{ enrollment.enrolled_at.strftime('%b %d, %Y') }}</td>
+                                        <td>
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar" role="progressbar" 
+                                                     style="width: {{ enrollment.progress_percentage }}%"></div>
+                                            </div>
+                                            <small class="text-muted">{{ "%.1f"|format(enrollment.progress_percentage) }}%</small>
+                                        </td>
+                                        <td>
+                                            {% if enrollment.completed_at %}
+                                                <span class="badge bg-success">Completed</span>
+                                            {% else %}
+                                                <span class="badge bg-primary">In Progress</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-graduation-cap fa-3x text-muted mb-3"></i>
+                            <h6 class="text-muted">No recent enrollments</h6>
+                            <p class="text-muted">Enrollment activity will appear here</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions & System Info -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('admin_users') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-user-plus me-2"></i>Add New User
+                        </a>
+                        <a href="{{ url_for('admin_courses') }}" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-plus me-2"></i>Create Course
+                        </a>
+                        <button type="button" class="btn btn-outline-info btn-sm" onclick="generateReport()">
+                            <i class="fas fa-chart-bar me-2"></i>Generate Report
+                        </button>
+                        <button type="button" class="btn btn-outline-warning btn-sm" onclick="systemMaintenance()">
+                            <i class="fas fa-tools me-2"></i>System Maintenance
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Information -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">System Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 small">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">System Status:</span>
+                                <span class="badge bg-success">Online</span>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Database:</span>
+                                <span class="badge bg-success">Connected</span>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Last Backup:</span>
+                                <span class="text-dark">Today, 3:00 AM</span>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Server Load:</span>
+                                <span class="text-success">Low</span>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Storage Used:</span>
+                                <span class="text-warning">45%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">System Activity</h6>
+                </div>
+                <div class="card-body">
+                    <div class="timeline-admin">
+                        <div class="timeline-item-admin">
+                            <div class="timeline-marker-admin bg-success"></div>
+                            <div class="timeline-content-admin">
+                                <h6 class="small mb-1">New User Registration</h6>
+                                <p class="small text-muted mb-0">John Doe registered</p>
+                                <small class="text-muted">2 hours ago</small>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item-admin">
+                            <div class="timeline-marker-admin bg-info"></div>
+                            <div class="timeline-content-admin">
+                                <h6 class="small mb-1">Course Published</h6>
+                                <p class="small text-muted mb-0">Advanced Teaching Methods</p>
+                                <small class="text-muted">4 hours ago</small>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item-admin">
+                            <div class="timeline-marker-admin bg-warning"></div>
+                            <div class="timeline-content-admin">
+                                <h6 class="small mb-1">System Maintenance</h6>
+                                <p class="small text-muted mb-0">Database optimization completed</p>
+                                <small class="text-muted">1 day ago</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function generateReport() {
+    showSpinner();
+    
+    // Simulate report generation
+    setTimeout(function() {
+        hideSpinner();
+        showNotification('System report generated successfully!', 'success');
+    }, 2000);
+}
+
+function systemMaintenance() {
+    if (confirm('Are you sure you want to run system maintenance? This may take a few minutes.')) {
+        showSpinner();
+        
+        // Simulate maintenance
+        setTimeout(function() {
+            hideSpinner();
+            showNotification('System maintenance completed successfully!', 'success');
+        }, 3000);
+    }
+}
+
+// Auto-refresh dashboard data every 5 minutes
+setInterval(function() {
+    // In a real application, this would fetch updated statistics
+    console.log('Refreshing dashboard data...');
+}, 300000);
+
+// Initialize tooltips for better UX
+$(document).ready(function() {
+    $('[data-bs-toggle="tooltip"]').tooltip();
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+
+.text-gray-300 {
+    color: #dddfeb !important;
+}
+
+.text-gray-800 {
+    color: #5a5c69 !important;
+}
+
+.shadow {
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
+}
+
+.timeline-admin {
+    position: relative;
+    padding-left: 20px;
+}
+
+.timeline-admin::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline-item-admin {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker-admin {
+    position: absolute;
+    left: -16px;
+    top: 5px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.timeline-content-admin {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 6px;
+    border-left: 3px solid var(--primary-color);
+}
+
+.avatar img {
+    object-fit: cover;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #5a5c69;
+    font-size: 0.85rem;
+}
+
+.table td {
+    vertical-align: middle;
+    font-size: 0.85rem;
+}
+
+.progress {
+    height: 6px;
+    border-radius: 10px;
+}
+
+.progress-bar {
+    border-radius: 10px;
+}
+
+.card-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-success:hover,
+.btn-outline-info:hover,
+.btn-outline-warning:hover {
+    transform: translateY(-1px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .d-flex.gap-2 {
+        flex-direction: column;
+        gap: 0.5rem !important;
+    }
+    
+    .table-responsive {
+        font-size: 0.8rem;
+    }
+    
+    .timeline-admin {
+        padding-left: 15px;
+    }
+    
+    .timeline-marker-admin {
+        left: -12px;
+        width: 12px;
+        height: 12px;
+    }
+}
+
+/* Animation for cards */
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+/* Custom scrollbar for timeline */
+.timeline-admin::-webkit-scrollbar {
+    width: 4px;
+}
+
+.timeline-admin::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.timeline-admin::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 2px;
+}
+
+.timeline-admin::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+</style>
+{% endblock %}

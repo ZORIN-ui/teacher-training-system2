@@ -1,0 +1,120 @@
+{% extends "base_simple.html" %}
+
+{% block title %}Create Lesson - {{ course.title }} - Teacher Training System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-plus me-2 text-primary"></i>
+                        Add New Lesson
+                    </h4>
+                    <p class="text-muted mb-0 mt-1">Course: <strong>{{ course.title }}</strong></p>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="title" class="form-label">
+                                        <i class="fas fa-heading me-1"></i>Lesson Title *
+                                    </label>
+                                    <input type="text" class="form-control" id="title" name="title" required
+                                           placeholder="Enter lesson title">
+                                    <div class="form-text">Choose a clear, descriptive title for this lesson</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="duration_minutes" class="form-label">
+                                        <i class="fas fa-clock me-1"></i>Duration (Minutes)
+                                    </label>
+                                    <input type="number" class="form-control" id="duration_minutes" name="duration_minutes" 
+                                           min="0" max="300" placeholder="30">
+                                    <div class="form-text">Estimated time to complete</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="lesson_type" class="form-label">
+                                <i class="fas fa-layer-group me-1"></i>Lesson Type
+                            </label>
+                            <select class="form-select" id="lesson_type" name="lesson_type">
+                                <option value="text">Text Content</option>
+                                <option value="video">Video</option>
+                                <option value="audio">Audio</option>
+                                <option value="presentation">Presentation</option>
+                                <option value="interactive">Interactive</option>
+                                <option value="quiz">Quiz</option>
+                            </select>
+                            <div class="form-text">Select the primary format for this lesson</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="content" class="form-label">
+                                <i class="fas fa-align-left me-1"></i>Lesson Content *
+                            </label>
+                            <textarea class="form-control" id="content" name="content" rows="12" required
+                                      placeholder="Enter the lesson content here. You can include:&#10;&#10;• Learning objectives&#10;• Main content and explanations&#10;• Examples and case studies&#10;• Activities and exercises&#10;• Summary and key takeaways&#10;• Additional resources"></textarea>
+                            <div class="form-text">
+                                Provide comprehensive content for this lesson. Use clear headings, bullet points, and examples to make it engaging.
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('manage_lessons', course_id=course.id) }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Back to Lessons
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Create Lesson
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Lesson Creation Tips -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-lightbulb me-2 text-warning"></i>
+                        Lesson Creation Guidelines
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-check-circle text-success me-1"></i>Content Structure</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-chevron-right text-primary me-2"></i>Start with clear learning objectives</li>
+                                <li><i class="fas fa-chevron-right text-primary me-2"></i>Break content into digestible sections</li>
+                                <li><i class="fas fa-chevron-right text-primary me-2"></i>Include practical examples</li>
+                                <li><i class="fas fa-chevron-right text-primary me-2"></i>End with a summary</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-users text-info me-1"></i>Engagement Tips</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-chevron-right text-primary me-2"></i>Use interactive elements</li>
+                                <li><i class="fas fa-chevron-right text-primary me-2"></i>Include reflection questions</li>
+                                <li><i class="fas fa-chevron-right text-primary me-2"></i>Provide real-world scenarios</li>
+                                <li><i class="fas fa-chevron-right text-primary me-2"></i>Add multimedia when possible</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Pro Tip:</strong> Lessons are automatically ordered based on creation time. 
+                        You can reorder them later in the lesson management interface.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
